@@ -17,7 +17,7 @@
 	</modules>
 
 	<properties>
-		<bean-auto-utils.version>0.0.9</bean-auto-utils.version>
+		<bean-auto-utils.version>0.0.10</bean-auto-utils.version>
 		<!--RapidPM -->
 		<rapidpm-dependencies.version>04.00.12-RPM</rapidpm-dependencies.version>
 	</properties>

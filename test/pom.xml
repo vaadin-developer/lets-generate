@@ -14,5 +14,29 @@
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
-	<name>Lets Generate :: Test</name>	
+	<name>Lets Generate :: Test</name>
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<configuration>
+						<annotationProcessorPaths>
+							<annotationProcessorPath>
+								<groupId>net.vergien.lets-generate</groupId>
+								<artifactId>lets-generate</artifactId>
+								<version>0.0.1-SNAPSHOT</version>
+							</annotationProcessorPath>
+							<annotationProcessorPath>
+								<groupId>net.vergien.bau</groupId>
+								<artifactId>bean-auto-utils-processor</artifactId>
+								<version>${bean-auto-utils.version}</version>
+							</annotationProcessorPath>
+						</annotationProcessorPaths>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
 </project>
