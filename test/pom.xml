@@ -10,8 +10,13 @@
 	<dependencies>
 		<dependency>
 			<groupId>net.vergien.lets-generate</groupId>
-			<artifactId>lets-generate</artifactId>
+			<artifactId>lets-generate-annotations</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>net.vergien.bau</groupId>
+			<artifactId>bean-auto-utils-annotations</artifactId>
+			<version>${bean-auto-utils.version}</version>
 		</dependency>
 	</dependencies>
 	<name>Lets Generate :: Test</name>
@@ -25,8 +30,8 @@
 						<annotationProcessorPaths>
 							<annotationProcessorPath>
 								<groupId>net.vergien.lets-generate</groupId>
-								<artifactId>lets-generate</artifactId>
-								<version>0.0.1-SNAPSHOT</version>
+								<artifactId>lets-generate-processor</artifactId>
+								<version>${project.version}</version>
 							</annotationProcessorPath>
 							<annotationProcessorPath>
 								<groupId>net.vergien.bau</groupId>

@@ -8,4 +8,11 @@
 	</parent>
 	<artifactId>lets-generate-annotations</artifactId>
 	<name>Lets Generate :: Annotations</name>
+	<dependencies>
+		<dependency>
+			<groupId>org.infinitenature</groupId>
+			<artifactId>commons-pagination</artifactId>
+			<version>0.0.6</version>
+		</dependency>
+	</dependencies>
 </project>

@@ -1,20 +1,13 @@
 package org.rapidpm.vgu.generator.processor;
 
-import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.annotation.processing.AbstractProcessor;
-import javax.annotation.processing.Processor;
-import javax.annotation.processing.RoundEnvironment;
-import javax.annotation.processing.SupportedSourceVersion;
-import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
@@ -24,64 +17,13 @@ import javax.lang.model.type.TypeMirror;
 import javax.tools.Diagnostic;
 import javax.tools.Diagnostic.Kind;
 import org.rapidpm.dependencies.core.logger.HasLogger;
-import org.rapidpm.vgu.generator.annotation.DataBean;
 import org.rapidpm.vgu.generator.annotation.DataBeanType;
 import org.rapidpm.vgu.generator.annotation.FilterProperty;
 import org.rapidpm.vgu.generator.annotation.SortProperty;
-import org.rapidpm.vgu.generator.codegenerator.FilterGenerator;
-import org.rapidpm.vgu.generator.codegenerator.QueryInterfaceGenerator;
-import org.rapidpm.vgu.generator.codegenerator.SortPropertyGenerator;
 import org.rapidpm.vgu.generator.model.DataBeanModel;
 import org.rapidpm.vgu.generator.model.PropertyModel;
-import com.google.auto.service.AutoService;
 
-
-@SupportedSourceVersion(SourceVersion.RELEASE_8)
-@AutoService(Processor.class)
-public class VaadinGeneratorUtilsAnnotationProccessor extends AbstractProcessor
-    implements HasLogger {
-
-  @Override
-  public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-    for (TypeElement annotation : annotations) {
-      try {
-        logger().info("Process anotation {}", annotation);
-        Set<? extends Element> annotatedElements = roundEnv.getElementsAnnotatedWith(annotation);
-        for (Element e : annotatedElements) {
-          logger().info("Process element {} of type {} with annotaded with {}", e,
-              e.getClass().getName(), annotation);
-
-          TypeElement typeElement = (TypeElement) e;
-
-          DataBeanModel dataBeanModel = process(typeElement);
-          logger().info("DataBeanModel: {}", dataBeanModel);
-          write(typeElement, dataBeanModel);
-        }
-      } catch (Exception e) {
-        logger().severe("Failure proccessing", e);
-        error("Failure proccessing dataBean", annotation);
-      }
-    }
-    return true;
-  }
-
-  private void write(TypeElement typeElement, DataBeanModel dataBeanModel) {
-    try {
-      FilterGenerator filterGenerator = new FilterGenerator();
-      filterGenerator.writeCode(processingEnv.getFiler(), dataBeanModel);
-
-      SortPropertyGenerator sortPropertyGenerator = new SortPropertyGenerator();
-      sortPropertyGenerator.writeCode(processingEnv.getFiler(), dataBeanModel);
-
-      if (dataBeanModel.getModelType().equals(DataBeanType.PLAIN)) {
-        QueryInterfaceGenerator queryInterfaceGenerator = new QueryInterfaceGenerator();
-        queryInterfaceGenerator.writeCode(processingEnv.getFiler(), dataBeanModel);
-      }
-    } catch (IOException e1) {
-      logger().severe("Failrue writing code", e1);
-      error("Failure writing code", typeElement);
-    }
-  }
+public abstract class AbstractDataBeanProcessor extends AbstractProcessor implements HasLogger {
 
   public DataBeanModel process(TypeElement typeElement) {
     processingEnv.getMessager().printMessage(Kind.WARNING,
@@ -175,15 +117,9 @@ public class VaadinGeneratorUtilsAnnotationProccessor extends AbstractProcessor
     return (TypeElement) processingEnv.getTypeUtils().asElement(supperClassMirror);
   }
 
-  @Override
-  public Set<String> getSupportedAnnotationTypes() {
-    Set<String> supportedAnnotations = new HashSet<>(Arrays.asList(DataBean.class.getName()
-    // , SortProperty.class.getName(), FilterProperty.class.getName()
-    ));
-    return supportedAnnotations;
-  }
-
-  private void error(String msg, Element e) {
+  protected void error(String msg, Element e) {
     processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, msg, e);
   }
+
+  public abstract void write(TypeElement typeElement, DataBeanModel dataBeanModel);
 }

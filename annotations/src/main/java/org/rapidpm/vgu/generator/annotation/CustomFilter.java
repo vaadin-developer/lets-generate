@@ -1,12 +1,12 @@
 package org.rapidpm.vgu.generator.annotation;
 
-import static java.lang.annotation.RetentionPolicy.SOURCE;
-import java.lang.annotation.ElementType;
+import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
+import static java.lang.annotation.RetentionPolicy.CLASS;
 import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
+import java.lang.annotation.Target;;
 
-@Retention(SOURCE)
-@Target(ElementType.ANNOTATION_TYPE)
+@Retention(CLASS)
+@Target(ANNOTATION_TYPE)
 public @interface CustomFilter {
   Class<?> type() default String.class;
 
