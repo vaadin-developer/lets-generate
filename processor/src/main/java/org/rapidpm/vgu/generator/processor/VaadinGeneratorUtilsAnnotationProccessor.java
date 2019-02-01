@@ -25,7 +25,6 @@ import javax.tools.Diagnostic;
 import javax.tools.Diagnostic.Kind;
 import org.rapidpm.dependencies.core.logger.HasLogger;
 import org.rapidpm.vgu.generator.annotation.DataBean;
-import org.rapidpm.vgu.generator.annotation.DataBeanPrism;
 import org.rapidpm.vgu.generator.annotation.DataBeanType;
 import org.rapidpm.vgu.generator.annotation.FilterProperty;
 import org.rapidpm.vgu.generator.annotation.SortProperty;

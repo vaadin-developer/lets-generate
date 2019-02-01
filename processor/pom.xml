@@ -6,8 +6,8 @@
 		<artifactId>lets-generate-parent</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
-	<artifactId>lets-generate</artifactId>
-	<name>Lets Generate :: Implementation</name>
+	<artifactId>lets-generate-processor</artifactId>
+	<name>Lets Generate :: Processor</name>
 
 	<dependencies>
 		<dependency>
@@ -29,6 +29,7 @@
 			<groupId>com.jolira</groupId>
 			<artifactId>hickory</artifactId>
 			<version>1.0.0</version>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
@@ -38,6 +39,11 @@
 			<groupId>org.infinitenature</groupId>
 			<artifactId>commons-pagination</artifactId>
 			<version>0.0.6</version>
+		</dependency>
+		<dependency>
+			<groupId>net.vergien.lets-generate</groupId>
+			<artifactId>lets-generate-annotations</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 	<build>

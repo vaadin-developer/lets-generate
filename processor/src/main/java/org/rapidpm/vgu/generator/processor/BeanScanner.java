@@ -8,7 +8,6 @@ import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.PrimitiveType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.util.ElementScanner8;
-import org.rapidpm.vgu.generator.annotation.FilterPropertyPrism;
 import org.rapidpm.vgu.generator.model.DataBeanModel;
 
 public class BeanScanner extends ElementScanner8<Void, DataBeanModel> {

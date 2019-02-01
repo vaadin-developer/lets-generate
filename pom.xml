@@ -12,7 +12,8 @@
 	<packaging>pom</packaging>
 	<name>Lets Generate :: Parent</name>
 	<modules>
-		<module>impl</module>
+		<module>processor</module>
+		<module>annotations</module>
 		<module>test</module>
 	</modules>
 

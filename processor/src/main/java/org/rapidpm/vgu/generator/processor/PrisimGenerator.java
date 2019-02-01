@@ -1,5 +1,9 @@
-package org.rapidpm.vgu.generator.annotation;
+package org.rapidpm.vgu.generator.processor;
 
+import org.rapidpm.vgu.generator.annotation.CustomFilter;
+import org.rapidpm.vgu.generator.annotation.DataBean;
+import org.rapidpm.vgu.generator.annotation.FilterProperty;
+import org.rapidpm.vgu.generator.annotation.SortProperty;
 import net.java.dev.hickory.prism.GeneratePrism;
 import net.java.dev.hickory.prism.GeneratePrisms;
 
