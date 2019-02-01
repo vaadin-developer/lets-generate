@@ -6,8 +6,8 @@ import org.rapidpm.vgu.generator.annotation.FilterProperty;
 import org.rapidpm.vgu.generator.annotation.SortProperty;
 import net.vergien.beanautoutils.annotation.Bean;
 
-@DataBean(customFilters = {@CustomFilter(type = String.class, name = "name"),
-    @CustomFilter(name = "withDefault")})
+@DataBean(customFilters = {@CustomFilter(type = Integer.class, name = "maxAge"),
+    @CustomFilter(name = "name")})
 @Bean
 public class Address extends BaseEntity {
 

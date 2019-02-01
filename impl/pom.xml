@@ -18,7 +18,7 @@
 		<dependency>
 			<groupId>net.vergien.bau</groupId>
 			<artifactId>bean-auto-utils</artifactId>
-			<version>0.0.8</version>
+			<version>${bean-auto-utils.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.squareup</groupId>
@@ -40,30 +40,4 @@
 			<version>0.0.6</version>
 		</dependency>
 	</dependencies>
-	<build>
-		<plugins>
-			<plugin>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<configuration>
-					<annotationProcessorPaths>
-						<annotationProcessorPath>
-							<groupId>com.google.auto.service</groupId>
-							<artifactId>auto-service</artifactId>
-							<version>1.0-rc4</version>
-						</annotationProcessorPath>
-						<annotationProcessorPath>
-							<groupId>net.vergien.bau</groupId>
-							<artifactId>bean-auto-utils</artifactId>
-							<version>0.0.8</version>
-						</annotationProcessorPath>
-						<annotationProcessorPath>
-							<groupId>com.jolira</groupId>
-							<artifactId>hickory</artifactId>
-							<version>1.0.0</version>
-						</annotationProcessorPath>
-					</annotationProcessorPaths>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
 </project>
