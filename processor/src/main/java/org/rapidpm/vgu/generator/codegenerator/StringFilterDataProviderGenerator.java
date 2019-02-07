@@ -5,7 +5,9 @@ import java.util.Optional;
 import java.util.stream.Stream;
 import javax.annotation.processing.Filer;
 import javax.lang.model.element.Modifier;
+import org.infinitenature.commons.pagination.OffsetRequest;
 import org.infinitenature.commons.pagination.SortOrder;
+import org.infinitenature.commons.pagination.impl.OffsetRequestImpl;
 import org.rapidpm.vgu.generator.model.DataBeanModel;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.MethodSpec;
@@ -68,6 +70,7 @@ public class StringFilterDataProviderGenerator extends AbstractCodeGenerator {
   private MethodSpec fetch(DataBeanModel model) {
     ClassName sortOderClassName = ClassName.get(SortOrder.class);
     ClassName sortDirectionClassName = ClassName.get(SortDirection.class);
+    ClassName sortPropertyClassName = JPoetUtils.getSortPropertyClassName(model);
     return MethodSpec.methodBuilder("fetchFromBackEnd").addAnnotation(Override.class)
         .returns(ParameterizedTypeName
             .get(ClassName.get(Stream.class), JPoetUtils.getBeanClassName(model)))
@@ -80,7 +83,17 @@ public class StringFilterDataProviderGenerator extends AbstractCodeGenerator {
             "$T order = $N.getSortOrders().isEmpty() ? $T.ASC : query.getSortOrders().get(0).getDirection() == $T.ASCENDING ? $T.ASC : $T.DESC",
             sortOderClassName, "query", sortOderClassName, sortDirectionClassName,
             sortOderClassName, sortOderClassName)
-        .addStatement("return null").build();
+        .addStatement(
+            "$T property = query.getSortOrders().isEmpty() ?  $T.$N : $T.valueOf(query.getSortOrders().get(0).getSorted())",
+            sortPropertyClassName, sortPropertyClassName,
+            ClassNameUtils.toEnumName(model.getDefaultSortProperty().get().getName()),
+            sortPropertyClassName)
+        .addStatement(
+            "$T offsetRequest = new $T(query.getOffset(), query.getLimit(), order, property)",
+            ClassName.get(OffsetRequest.class), ClassName.get(OffsetRequestImpl.class))
+        .addStatement(
+            "return baseQueries.find(createFilter(query.getFilter()), offsetRequest).getContent().stream()")
+        .build();
   }
 
   private MethodSpec constructor(DataBeanModel model) {

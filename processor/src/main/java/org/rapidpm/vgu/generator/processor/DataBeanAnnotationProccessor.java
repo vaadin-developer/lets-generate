@@ -12,7 +12,6 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import org.rapidpm.dependencies.core.logger.HasLogger;
 import org.rapidpm.vgu.generator.annotation.DataBean;
-import org.rapidpm.vgu.generator.annotation.DataBeanType;
 import org.rapidpm.vgu.generator.codegenerator.FilterGenerator;
 import org.rapidpm.vgu.generator.codegenerator.QueryInterfaceGenerator;
 import org.rapidpm.vgu.generator.codegenerator.SortPropertyGenerator;
@@ -62,10 +61,8 @@ public class DataBeanAnnotationProccessor extends AbstractDataBeanProcessor impl
       SortPropertyGenerator sortPropertyGenerator = new SortPropertyGenerator();
       sortPropertyGenerator.writeCode(processingEnv.getFiler(), dataBeanModel);
 
-      if (dataBeanModel.getModelType().equals(DataBeanType.PLAIN)) {
-        QueryInterfaceGenerator queryInterfaceGenerator = new QueryInterfaceGenerator();
-        queryInterfaceGenerator.writeCode(processingEnv.getFiler(), dataBeanModel);
-      }
+      QueryInterfaceGenerator queryInterfaceGenerator = new QueryInterfaceGenerator();
+      queryInterfaceGenerator.writeCode(processingEnv.getFiler(), dataBeanModel);
     } catch (IOException e1) {
       logger().severe("Failrue writing code", e1);
       error("Failure writing code", typeElement);

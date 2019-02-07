@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.util.stream.Stream;
 import javax.annotation.processing.Filer;
 import javax.lang.model.element.Modifier;
+import org.infinitenature.commons.pagination.OffsetRequest;
 import org.infinitenature.commons.pagination.SortOrder;
+import org.infinitenature.commons.pagination.impl.OffsetRequestImpl;
 import org.rapidpm.vgu.generator.model.DataBeanModel;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.MethodSpec;
@@ -63,10 +65,18 @@ public class VaadinDataProviderGenerator extends AbstractCodeGenerator {
             sortOderClassName, "query", sortOderClassName, sortDirectionClassName,
             sortOderClassName, sortOderClassName)
         .addStatement(
-            "$T property = query.getSortOrders().get(0).getSorted() != null ? $T.valueOf(query.getSortOrders().get(0).getSorted()) : $T.$N",
-            sortPropertyClassName, sortPropertyClassName, sortPropertyClassName,
-            ClassNameUtils.toEnumName(model.getDefaultSortProperty().get().getName()))
-        .addStatement("return null").build();
+            "$T property = query.getSortOrders().isEmpty() ?  $T.$N : $T.valueOf(query.getSortOrders().get(0).getSorted())",
+            sortPropertyClassName, sortPropertyClassName,
+            ClassNameUtils.toEnumName(model.getDefaultSortProperty().get().getName()),
+            sortPropertyClassName)
+        .addStatement(
+            "$T offsetRequest = new $T(query.getOffset(), query.getLimit(), order, property)",
+            ClassName.get(OffsetRequest.class), ClassName.get(OffsetRequestImpl.class))
+        .addStatement(
+            "$T filter = query.getFilter().isPresent() ? query.getFilter().get() : new $T()",
+            filterClassName(model), filterClassName(model))
+        .addStatement("return baseQueries.find(filter, offsetRequest).getContent().stream()")
+        .build();
   }
 
   private MethodSpec constructor(DataBeanModel model) {
