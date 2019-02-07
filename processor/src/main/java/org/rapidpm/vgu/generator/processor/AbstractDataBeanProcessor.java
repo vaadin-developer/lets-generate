@@ -31,16 +31,42 @@ public abstract class AbstractDataBeanProcessor extends AbstractProcessor implem
     DataBeanPrism displayBeanPrisim = DataBeanPrism.getInstanceOn(typeElement);
     DataBeanModel dataBeanModel = new DataBeanModel(typeElement);
     dataBeanModel.setModelType(DataBeanType.valueOf(displayBeanPrisim.type()));
+    List<PropertyModel> defaultFilterCandidates = new ArrayList<>();
     dataBeanModel.getFilterProperties()
-        .addAll(displayBeanPrisim.customFilters().stream()
-            .map(cfPrism -> new PropertyModel(cfPrism.name(), cfPrism.type()))
-            .collect(Collectors.toSet()));
-    dataBeanModel.getFilterProperties()
-        .addAll(exctractPropertyModel(typeElement, FilterProperty.class));
+        .addAll(displayBeanPrisim.customFilters().stream().map(cfPrism -> {
+          PropertyModel propertyModel = new PropertyModel(cfPrism.name(), cfPrism.type());
+          if (Boolean.TRUE.equals(cfPrism.defaultFilter())) {
+            defaultFilterCandidates.add(propertyModel);
+          }
+          return propertyModel;
+        }).collect(Collectors.toSet()));
+    Set<PropertyModel> filterProperties = exctractPropertyModel(typeElement, FilterProperty.class);
+    for (PropertyModel propertyModel : filterProperties) {
+      FilterPropertyPrism fpp =
+          FilterPropertyPrism.getInstanceOn(propertyModel.getVariableElement().get());
+      if (Boolean.TRUE.equals(fpp.defaultFilter())) {
+        defaultFilterCandidates.add(propertyModel);
+      }
+    }
+    dataBeanModel.getFilterProperties().addAll(filterProperties);
+    switch (defaultFilterCandidates.size()) {
+      case 0:
+        dataBeanModel.setDefaultFilterProperty(Optional.empty());
+        break;
+      case 1:
+        dataBeanModel.setDefaultFilterProperty(Optional.ofNullable(defaultFilterCandidates.get(0)));
+        break;
+      default:
+        error("more than one default sort candidate found", typeElement);
+        break;
+    }
+
     dataBeanModel.getSortProperties()
         .addAll(exctractPropertyModel(typeElement, SortProperty.class));
     dataBeanModel.setPkg(getPackageName(typeElement));
     dataBeanModel.setIdProperty(getIdProperty(typeElement));
+
+    setDefaultSort(typeElement, dataBeanModel);
     if (typeElement.getKind() == ElementKind.ENUM) {
       // beanDescription.setEnumeration(true);
       // EnumScanner enumScanner = new EnumScanner();
@@ -53,6 +79,50 @@ public abstract class AbstractDataBeanProcessor extends AbstractProcessor implem
       dataBeanModel.setImports(new ArrayList<>(importScanner.getImportedTypes()));
     }
     return dataBeanModel;
+  }
+
+  private void setDefaultSort(TypeElement typeElement, DataBeanModel dataBeanModel) {
+    List<PropertyModel> defaultSortCandidates = new ArrayList<>();
+    for (PropertyModel propertyModel : dataBeanModel.getSortProperties()) {
+      SortPropertyPrism ssp =
+          SortPropertyPrism.getInstanceOn(propertyModel.getVariableElement().get());
+      if (Boolean.TRUE.equals(ssp.defaultSort())) {
+        defaultSortCandidates.add(propertyModel);
+      }
+    }
+    switch (defaultSortCandidates.size()) {
+      case 0:
+        dataBeanModel.setDefaultSortProperty(Optional.empty());
+        break;
+      case 1:
+        dataBeanModel.setDefaultSortProperty(Optional.ofNullable(defaultSortCandidates.get(0)));
+        break;
+      default:
+        error("more than one default sort candidate found", typeElement);
+        break;
+    }
+  }
+
+  private void setDefaultFilter(TypeElement typeElement, DataBeanModel dataBeanModel) {
+    List<PropertyModel> defaultSortCandidates = new ArrayList<>();
+    for (PropertyModel propertyModel : dataBeanModel.getSortProperties()) {
+      SortPropertyPrism ssp =
+          SortPropertyPrism.getInstanceOn(propertyModel.getVariableElement().get());
+      if (Boolean.TRUE.equals(ssp.defaultSort())) {
+        defaultSortCandidates.add(propertyModel);
+      }
+    }
+    switch (defaultSortCandidates.size()) {
+      case 0:
+        dataBeanModel.setDefaultSortProperty(Optional.empty());
+        break;
+      case 1:
+        dataBeanModel.setDefaultSortProperty(Optional.ofNullable(defaultSortCandidates.get(0)));
+        break;
+      default:
+        error("more than one default sort candidate found", typeElement);
+        break;
+    }
   }
 
   private Optional<PropertyModel> getIdProperty(TypeElement typeElement) {
@@ -119,6 +189,10 @@ public abstract class AbstractDataBeanProcessor extends AbstractProcessor implem
 
   protected void error(String msg, Element e) {
     processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, msg, e);
+  }
+
+  protected void warn(String msg, Element e) {
+    processingEnv.getMessager().printMessage(Diagnostic.Kind.WARNING, msg, e);
   }
 
   public abstract void write(TypeElement typeElement, DataBeanModel dataBeanModel);

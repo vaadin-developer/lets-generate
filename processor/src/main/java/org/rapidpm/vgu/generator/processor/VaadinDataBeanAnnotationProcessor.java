@@ -14,6 +14,8 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 import org.rapidpm.dependencies.core.logger.HasLogger;
 import org.rapidpm.vgu.generator.annotation.VaadinDataBeans;
+import org.rapidpm.vgu.generator.codegenerator.CodeGenerator;
+import org.rapidpm.vgu.generator.codegenerator.StringFilterDataProviderGenerator;
 import org.rapidpm.vgu.generator.codegenerator.VaadinDataProviderGenerator;
 import org.rapidpm.vgu.generator.model.DataBeanModel;
 import com.google.auto.service.AutoService;
@@ -22,6 +24,10 @@ import com.google.auto.service.AutoService;
 @AutoService(Processor.class)
 public class VaadinDataBeanAnnotationProcessor extends AbstractDataBeanProcessor
     implements HasLogger {
+
+  private CodeGenerator[] generators =
+      {new VaadinDataProviderGenerator(), new StringFilterDataProviderGenerator()};
+
   @Override
   public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
     for (TypeElement annotation : annotations) {
@@ -55,12 +61,13 @@ public class VaadinDataBeanAnnotationProcessor extends AbstractDataBeanProcessor
 
   @Override
   public void write(TypeElement typeElement, DataBeanModel dataBeanModel) {
-    try {
-      VaadinDataProviderGenerator generator = new VaadinDataProviderGenerator();
-      generator.writeCode(processingEnv.getFiler(), dataBeanModel);
-    } catch (IOException e1) {
-      logger().severe("Failrue writing code", e1);
-      error("Failure writing code", typeElement);
+    for (CodeGenerator generator : generators) {
+      try {
+        generator.writeCode(processingEnv.getFiler(), dataBeanModel);
+      } catch (IOException e1) {
+        logger().severe("Failrue writing code", e1);
+        error("Failure writing code", typeElement);
+      }
     }
   }
 }

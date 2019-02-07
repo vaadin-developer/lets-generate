@@ -1,6 +1,7 @@
 package org.rapidpm.vgu.generator.codegenerator;
 
 import java.io.IOException;
+import java.util.Optional;
 import java.util.stream.Stream;
 import javax.annotation.processing.Filer;
 import javax.lang.model.element.Modifier;
@@ -13,7 +14,7 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.vaadin.flow.data.provider.SortDirection;
 
-public class VaadinDataProviderGenerator extends AbstractCodeGenerator {
+public class StringFilterDataProviderGenerator extends AbstractCodeGenerator {
 
   private static final String BASE_QUERIES_FIELD = "baseQueries";
 
@@ -26,8 +27,26 @@ public class VaadinDataProviderGenerator extends AbstractCodeGenerator {
                 JPoetUtils.getBeanClassName(model), filterClassName(model)))
             .addField(JPoetUtils.getBaseQueriesClassName(model), BASE_QUERIES_FIELD,
                 Modifier.PRIVATE)
-            .addMethod(constructor(model)).addMethod(fetch(model)).addMethod(size(model)).build();
+            .addMethod(constructor(model)).addMethod(fetch(model)).addMethod(size(model))
+            .addMethod(createFilter(model)).build();
     writeClass(filer, model, dataProviderClass);
+  }
+
+
+  private MethodSpec createFilter(DataBeanModel model) {
+    return MethodSpec.methodBuilder("createFilter")
+        .addParameter(ParameterSpec.builder(
+            ParameterizedTypeName.get(ClassName.get(Optional.class), ClassName.get(String.class)),
+            "filterString").build())
+        .addModifiers(Modifier.PRIVATE)
+        .addStatement("$T filter = new $T()", JPoetUtils.getFilterClassName(model),
+            JPoetUtils.getFilterClassName(model))
+        .beginControlFlow("if ($N.isPresent() && $N.get().length() > 0)", "filterString",
+            "filterString")
+        .addStatement("filter." + ClassNameUtils.prefixCamelCase("set",
+            model.getDefaultFilterProperty().get().getName()) + "(filterString.get())")
+        .endControlFlow().addStatement("return filter")
+        .returns(JPoetUtils.getFilterClassName(model)).build();
   }
 
   private MethodSpec size(DataBeanModel model) {
@@ -37,19 +56,18 @@ public class VaadinDataProviderGenerator extends AbstractCodeGenerator {
             ParameterizedTypeName.get(ClassName.get("com.vaadin.flow.data.provider", "Query"),
                 JPoetUtils.getBeanClassName(model), filterClassName(model)),
             "query")
-        .addStatement("return (int) $N.count($N.getFilter().orElse(new $T()))", BASE_QUERIES_FIELD,
-            "query", filterClassName(model))
+        .addStatement("return (int) $N.count(createFilter($N.getFilter()))", BASE_QUERIES_FIELD,
+            "query")
         .build();
   }
 
   protected ClassName filterClassName(DataBeanModel model) {
-    return JPoetUtils.getFilterClassName(model);
+    return ClassName.get(String.class);
   }
 
   private MethodSpec fetch(DataBeanModel model) {
     ClassName sortOderClassName = ClassName.get(SortOrder.class);
     ClassName sortDirectionClassName = ClassName.get(SortDirection.class);
-    ClassName sortPropertyClassName = JPoetUtils.getSortPropertyClassName(model);
     return MethodSpec.methodBuilder("fetchFromBackEnd").addAnnotation(Override.class)
         .returns(ParameterizedTypeName
             .get(ClassName.get(Stream.class), JPoetUtils.getBeanClassName(model)))
@@ -62,10 +80,6 @@ public class VaadinDataProviderGenerator extends AbstractCodeGenerator {
             "$T order = $N.getSortOrders().isEmpty() ? $T.ASC : query.getSortOrders().get(0).getDirection() == $T.ASCENDING ? $T.ASC : $T.DESC",
             sortOderClassName, "query", sortOderClassName, sortDirectionClassName,
             sortOderClassName, sortOderClassName)
-        .addStatement(
-            "$T property = query.getSortOrders().get(0).getSorted() != null ? $T.valueOf(query.getSortOrders().get(0).getSorted()) : $T.$N",
-            sortPropertyClassName, sortPropertyClassName, sortPropertyClassName,
-            ClassNameUtils.toEnumName(model.getDefaultSortProperty().get().getName()))
         .addStatement("return null").build();
   }
 
@@ -84,6 +98,7 @@ public class VaadinDataProviderGenerator extends AbstractCodeGenerator {
 
   @Override
   public String classSuffix() {
-    return "DataProvider";
+    return "StringFilterDataProvider";
   }
+
 }

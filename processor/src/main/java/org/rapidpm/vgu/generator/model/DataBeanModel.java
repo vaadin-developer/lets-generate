@@ -20,6 +20,8 @@ public class DataBeanModel {
   private Optional<PropertyModel> idProperty = Optional.empty();
   private Set<PropertyModel> sortProperties = new HashSet<>();
   private Set<PropertyModel> filterProperties = new HashSet<>();
+  private Optional<PropertyModel> defaultSortProperty = Optional.empty();
+  private Optional<PropertyModel> defaultFilterProperty = Optional.empty();
 
   public DataBeanModel(String simpleName) {
     this.name = simpleName;
@@ -131,4 +133,19 @@ public class DataBeanModel {
     return getPackageName(fqnNAme);
   }
 
+  public Optional<PropertyModel> getDefaultSortProperty() {
+    return defaultSortProperty;
+  }
+
+  public void setDefaultSortProperty(Optional<PropertyModel> defaultSortProperty) {
+    this.defaultSortProperty = defaultSortProperty;
+  }
+
+  public Optional<PropertyModel> getDefaultFilterProperty() {
+    return defaultFilterProperty;
+  }
+
+  public void setDefaultFilterProperty(Optional<PropertyModel> defaultFilterProperty) {
+    this.defaultFilterProperty = defaultFilterProperty;
+  }
 }

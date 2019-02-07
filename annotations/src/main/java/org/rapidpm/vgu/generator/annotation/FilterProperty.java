@@ -8,5 +8,5 @@ import java.lang.annotation.Target;
 @Retention(CLASS)
 @Target(FIELD)
 public @interface FilterProperty {
-
+  boolean defaultFilter() default false;
 }

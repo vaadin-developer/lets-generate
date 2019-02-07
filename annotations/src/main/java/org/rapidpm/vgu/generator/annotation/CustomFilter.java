@@ -11,4 +11,6 @@ public @interface CustomFilter {
   Class<?> type() default String.class;
 
   String name();
+
+  boolean defaultFilter() default false;
 }

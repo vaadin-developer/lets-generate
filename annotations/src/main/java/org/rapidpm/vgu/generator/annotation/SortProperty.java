@@ -8,5 +8,5 @@ import java.lang.annotation.Target;
 @Retention(CLASS)
 @Target(FIELD)
 public @interface SortProperty {
-
+  boolean defaultSort() default false;
 }

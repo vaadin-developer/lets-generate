@@ -1,5 +1,6 @@
 package org.rapidpm.vgu.generator.model;
 
+import java.util.Optional;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
 import net.vergien.beanautoutils.annotation.Bean;
@@ -9,16 +10,20 @@ public class PropertyModel {
   private final TypeMirror type;
   private final String name;
 
+  private final Optional<VariableElement> variableElement;
+
   public PropertyModel(VariableElement variableElement) {
     super();
     this.type = variableElement.asType();
     this.name = variableElement.getSimpleName().toString();
+    this.variableElement = Optional.ofNullable(variableElement);
   }
 
   public PropertyModel(String name, TypeMirror type) {
     super();
     this.type = type;
     this.name = name;
+    this.variableElement = Optional.empty();
   }
 
   public TypeMirror getType() {
@@ -27,6 +32,10 @@ public class PropertyModel {
 
   public String getName() {
     return name;
+  }
+
+  public Optional<VariableElement> getVariableElement() {
+    return variableElement;
   }
 
   @Override

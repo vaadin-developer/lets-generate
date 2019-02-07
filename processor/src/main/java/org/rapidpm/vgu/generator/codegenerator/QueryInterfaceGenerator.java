@@ -25,7 +25,7 @@ public class QueryInterfaceGenerator extends AbstractCodeGenerator {
   private MethodSpec countMethod(DataBeanModel model) {
     MethodSpec count = MethodSpec.methodBuilder("count")
         .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT).returns(TypeName.LONG)
-        .addParameter(ClassName.get(model.getPkg() + ".filter", model.getName() + "Filter"),
+        .addParameter(JPoetUtils.getFilterClassName(model),
             "filter")
         .build();
     return count;
