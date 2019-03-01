@@ -16,7 +16,8 @@ import org.rapidpm.dependencies.core.logger.HasLogger;
 import org.rapidpm.vgu.generator.annotation.VaadinDataBeans;
 import org.rapidpm.vgu.generator.codegenerator.CodeGenerator;
 import org.rapidpm.vgu.generator.codegenerator.StringFilterDataProviderGenerator;
-import org.rapidpm.vgu.generator.codegenerator.VaadinDataProviderGenerator;
+import org.rapidpm.vgu.generator.codegenerator.vaadin.VaadinDataProviderGenerator;
+import org.rapidpm.vgu.generator.codegenerator.vaadin.VaadinFormGenerator;
 import org.rapidpm.vgu.generator.model.DataBeanModel;
 import com.google.auto.service.AutoService;
 
@@ -26,7 +27,7 @@ public class VaadinDataBeanAnnotationProcessor extends AbstractDataBeanProcessor
     implements HasLogger {
 
   private CodeGenerator[] generators =
-      {new VaadinDataProviderGenerator(), new StringFilterDataProviderGenerator()};
+      {new VaadinDataProviderGenerator(), new StringFilterDataProviderGenerator(), new VaadinFormGenerator()};
 
   @Override
   public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {

@@ -1,4 +1,4 @@
-package org.rapidpm.vgu.generator.codegenerator;
+package org.rapidpm.vgu.generator.codegenerator.vaadin;
 
 import java.io.IOException;
 import java.util.stream.Stream;
@@ -7,6 +7,9 @@ import javax.lang.model.element.Modifier;
 import org.infinitenature.commons.pagination.OffsetRequest;
 import org.infinitenature.commons.pagination.SortOrder;
 import org.infinitenature.commons.pagination.impl.OffsetRequestImpl;
+import org.rapidpm.vgu.generator.codegenerator.AbstractCodeGenerator;
+import org.rapidpm.vgu.generator.codegenerator.ClassNameUtils;
+import org.rapidpm.vgu.generator.codegenerator.JPoetUtils;
 import org.rapidpm.vgu.generator.model.DataBeanModel;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.MethodSpec;

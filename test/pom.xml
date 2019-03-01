@@ -7,6 +7,7 @@
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
 	<artifactId>lets-generate-test</artifactId>
+	
 	<dependencies>
 		<dependency>
 			<groupId>net.vergien.lets-generate</groupId>
@@ -21,8 +22,21 @@
 		<!--Vaadin -->
 		<dependency>
 			<groupId>com.vaadin</groupId>
-			<artifactId>vaadin-core</artifactId>
-			<version>12.0.4</version>
+			<artifactId>vaadin</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.meecrowave</groupId>
+			<artifactId>meecrowave-core</artifactId>
+			<version>1.2.7</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-simple</artifactId>
 		</dependency>
 	</dependencies>
 	<name>Lets Generate :: Test</name>

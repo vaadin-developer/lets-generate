@@ -31,6 +31,7 @@ public abstract class AbstractDataBeanProcessor extends AbstractProcessor implem
     DataBeanPrism displayBeanPrisim = DataBeanPrism.getInstanceOn(typeElement);
     DataBeanModel dataBeanModel = new DataBeanModel(typeElement);
     dataBeanModel.setModelType(DataBeanType.valueOf(displayBeanPrisim.type()));
+    dataBeanModel.getProperties().addAll(extractPropertyModel(typeElement, e -> true));
     List<PropertyModel> defaultFilterCandidates = new ArrayList<>();
     dataBeanModel.getFilterProperties()
         .addAll(displayBeanPrisim.customFilters().stream().map(cfPrism -> {
@@ -154,6 +155,7 @@ public abstract class AbstractDataBeanProcessor extends AbstractProcessor implem
     return set;
 
   }
+
 
   public Set<PropertyModel> exctractPropertyModel(TypeElement typeElement,
       Class<? extends Annotation> annotationType) {

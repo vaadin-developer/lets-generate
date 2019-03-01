@@ -1,6 +1,7 @@
 package org.rapidpm.vgu.generator.model;
 
 import static org.rapidpm.vgu.generator.codegenerator.ClassNameUtils.getPackageName;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -18,6 +19,7 @@ public class DataBeanModel {
   private String fqnNAme;
   private List<String> imports;
   private Optional<PropertyModel> idProperty = Optional.empty();
+  private List<PropertyModel> properties = new ArrayList<>();
   private Set<PropertyModel> sortProperties = new HashSet<>();
   private Set<PropertyModel> filterProperties = new HashSet<>();
   private Optional<PropertyModel> defaultSortProperty = Optional.empty();
@@ -147,5 +149,13 @@ public class DataBeanModel {
 
   public void setDefaultFilterProperty(Optional<PropertyModel> defaultFilterProperty) {
     this.defaultFilterProperty = defaultFilterProperty;
+  }
+
+  public List<PropertyModel> getProperties() {
+    return properties;
+  }
+
+  public void setProperties(List<PropertyModel> properties) {
+    this.properties = properties;
   }
 }

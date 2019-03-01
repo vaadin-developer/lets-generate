@@ -21,6 +21,28 @@
 		<bean-auto-utils.version>0.0.10</bean-auto-utils.version>
 		<!--RapidPM -->
 		<rapidpm-dependencies.version>04.00.12-RPM</rapidpm-dependencies.version>
+		<vaadin.version>13.0.0.beta3</vaadin.version>
 	</properties>
-	
+	<repositories>
+		<repository>
+			<id>vaadin-prereleases</id>
+			<url>https://maven.vaadin.com/vaadin-prereleases/</url>
+		</repository>
+	</repositories>
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>com.vaadin</groupId>
+				<artifactId>vaadin-bom</artifactId>
+				<version>${vaadin.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>com.vaadin</groupId>
+				<artifactId>vaadin-text-field-flow</artifactId>
+				<version>1.4-SNAPSHOT</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 </project>
