@@ -21,10 +21,12 @@ import com.squareup.javapoet.TypeSpec.Builder;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.IntegerNumberField;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.binder.ReadOnlyHasValue;
 
 public class VaadinFormGenerator extends AbstractCodeGenerator {
 
@@ -42,12 +44,22 @@ public class VaadinFormGenerator extends AbstractCodeGenerator {
         .addMethod(setPresentationValue(model)).addField(Component.class, "layout", PROTECTED)
         .addMethod(initLayout(model)).addMethod(getContent()).addMethod(initSubmitButton(model))
         .addMethod(initResetButton(model));
+
+    if (model.getCaptionMethod().isPresent()) {
+      formClassBuilder.addField(TypeName.get(Label.class), "captionLabel", PROTECTED)
+          .addMethod(initCaptionLabel(model)).addMethod(bindCaption(model));
+    }
     for (PropertyModel property : model.getProperties()) {
       formClassBuilder.addField(propertyField(property));
       formClassBuilder.addMethod(bindMethod(property));
       formClassBuilder.addMethod(initField(property));
     }
     writeClass(filer, model, formClassBuilder.build());
+  }
+
+  private MethodSpec initCaptionLabel(DataBeanModel dataBeanModel) {
+    return MethodSpec.methodBuilder("initCaptionLabel").addModifiers(PRIVATE)
+        .addStatement("this.captionLabel = new $T()", Label.class).build();
   }
 
   private MethodSpec initSubmitButton(DataBeanModel dataBeanModel) {
@@ -103,6 +115,9 @@ public class VaadinFormGenerator extends AbstractCodeGenerator {
         .addStatement("$T buttonLayout = new $T($L, $L, $L)", HorizontalLayout.class,
             HorizontalLayout.class, "submitButton", "cancelButton", "resetButton")
         .addStatement("$T formLayout = new $T()", FormLayout.class, FormLayout.class);
+    if (model.getCaptionMethod().isPresent()) {
+      methodBuilder.addStatement("formLayout.add($L)", "captionLabel");
+    }
     for (PropertyModel property : model.getProperties()) {
       methodBuilder.addStatement("formLayout.add($L)", fieldName(property));
     }
@@ -113,7 +128,10 @@ public class VaadinFormGenerator extends AbstractCodeGenerator {
   private MethodSpec constructor(DataBeanModel model) {
     com.squareup.javapoet.MethodSpec.Builder constructorBuilder =
         MethodSpec.constructorBuilder().addModifiers(PUBLIC).addStatement("super(null)");
-
+    if (model.getCaptionMethod().isPresent()) {
+      constructorBuilder.addStatement("initCaptionLabel()");
+      constructorBuilder.addStatement("bindCaptionLabel()");
+    }
     for (PropertyModel property : model.getProperties()) {
       constructorBuilder.addStatement(fieldInitMethodName(property) + "()");
       constructorBuilder.addStatement(bindMethodName(property) + "()");
@@ -154,6 +172,17 @@ public class VaadinFormGenerator extends AbstractCodeGenerator {
         MethodSpec.methodBuilder(bindMethodName(propertyModel)).addModifiers(PROTECTED);
     binMethodBuilder.addStatement("binder.forField($L).bind($S)", fieldName(propertyModel),
         propertyModel.getName());
+    return binMethodBuilder.build();
+  }
+
+  private MethodSpec bindCaption(DataBeanModel model) {
+    com.squareup.javapoet.MethodSpec.Builder binMethodBuilder =
+        MethodSpec.methodBuilder("bindCaptionLabel").addModifiers(PROTECTED);
+    binMethodBuilder
+        .addStatement("$T<String> hasValue = new $T<>(captionLabel::setText)",
+            ReadOnlyHasValue.class, ReadOnlyHasValue.class)
+        .addStatement("binder.forField(hasValue).bind($L::$L, null)", model.getName(),
+            model.getCaptionMethod().get().getSimpleName().toString());
     return binMethodBuilder.build();
   }
 

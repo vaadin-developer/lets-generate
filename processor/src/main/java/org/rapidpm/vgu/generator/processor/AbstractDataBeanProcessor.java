@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import javax.annotation.processing.AbstractProcessor;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeKind;
@@ -17,6 +18,7 @@ import javax.lang.model.type.TypeMirror;
 import javax.tools.Diagnostic;
 import javax.tools.Diagnostic.Kind;
 import org.rapidpm.dependencies.core.logger.HasLogger;
+import org.rapidpm.vgu.generator.annotation.Caption;
 import org.rapidpm.vgu.generator.annotation.DataBeanType;
 import org.rapidpm.vgu.generator.annotation.FilterProperty;
 import org.rapidpm.vgu.generator.annotation.SortProperty;
@@ -33,6 +35,7 @@ public abstract class AbstractDataBeanProcessor extends AbstractProcessor implem
     dataBeanModel.setModelType(DataBeanType.valueOf(displayBeanPrisim.type()));
     dataBeanModel.getProperties().addAll(extractPropertyModel(typeElement, e -> true));
 
+    dataBeanModel.setCaptionMethod(getCaptionMethod(typeElement));
     List<PropertyModel> defaultFilterCandidates = new ArrayList<>();
     dataBeanModel.getFilterProperties()
         .addAll(displayBeanPrisim.customFilters().stream().map(cfPrism -> {
@@ -69,6 +72,8 @@ public abstract class AbstractDataBeanProcessor extends AbstractProcessor implem
     dataBeanModel.setIdProperty(getIdProperty(typeElement));
 
     setDefaultSort(typeElement, dataBeanModel);
+
+
     if (typeElement.getKind() == ElementKind.ENUM) {
       // beanDescription.setEnumeration(true);
       // EnumScanner enumScanner = new EnumScanner();
@@ -81,6 +86,27 @@ public abstract class AbstractDataBeanProcessor extends AbstractProcessor implem
       dataBeanModel.setImports(new ArrayList<>(importScanner.getImportedTypes()));
     }
     return dataBeanModel;
+  }
+
+  private Optional<ExecutableElement> getCaptionMethod(TypeElement typeElement) {
+    List<? extends Element> enclosedElements = typeElement.getEnclosedElements();
+    Optional<ExecutableElement> captionMethod = enclosedElements.stream()
+        .filter(enclosedElement -> enclosedElement.getKind().equals(ElementKind.METHOD))
+        .filter(enclosedElement -> enclosedElement.getAnnotation(Caption.class) != null)
+        .map(enclosedElement -> (ExecutableElement) enclosedElement).findFirst();
+
+    if (captionMethod.isPresent()) {
+      return captionMethod;
+    }
+    TypeElement superClassTypeElement = getSuperClassTypeElement(typeElement);
+
+    boolean processSuperClass = superClassTypeElement != null
+        && !superClassTypeElement.getQualifiedName().toString().equals(Object.class.getName());
+
+    if (processSuperClass) {
+      return getCaptionMethod(superClassTypeElement);
+    }
+    return Optional.empty();
   }
 
   private void setDefaultSort(TypeElement typeElement, DataBeanModel dataBeanModel) {

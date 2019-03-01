@@ -1,5 +1,6 @@
 package de.generator.beans;
 
+import org.rapidpm.vgu.generator.annotation.Caption;
 import org.rapidpm.vgu.generator.annotation.CustomFilter;
 import org.rapidpm.vgu.generator.annotation.DataBean;
 import org.rapidpm.vgu.generator.annotation.FilterProperty;
@@ -20,6 +21,11 @@ public class Address extends BaseEntity {
   @FilterProperty
   private int age;
   private String phone;
+
+  @Caption
+  public String computeCaption() {
+    return getId() + " - " + fristName + " " + lastName;
+  }
 
   public String getFristName() {
     return fristName;

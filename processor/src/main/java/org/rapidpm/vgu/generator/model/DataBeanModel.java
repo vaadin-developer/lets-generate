@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import org.rapidpm.vgu.generator.annotation.DataBeanType;
 import net.vergien.beanautoutils.annotation.Bean;
@@ -17,6 +18,7 @@ public class DataBeanModel {
   private String name;
   private String pkg;
   private String fqnNAme;
+  private Optional<ExecutableElement> captionMethod;
   private List<String> imports;
   private Optional<PropertyModel> idProperty = Optional.empty();
   private List<PropertyModel> properties = new ArrayList<>();
@@ -114,6 +116,14 @@ public class DataBeanModel {
 
   public void setModelType(DataBeanType modelType) {
     this.modelType = modelType;
+  }
+
+  public Optional<ExecutableElement> getCaptionMethod() {
+    return captionMethod;
+  }
+
+  public void setCaptionMethod(Optional<ExecutableElement> captionMethod) {
+    this.captionMethod = captionMethod;
   }
 
   @Override
