@@ -78,6 +78,9 @@ public class VaadinFormGenerator extends AbstractCodeGenerator {
         MethodSpec.methodBuilder(fieldInitMethodName(propertyModel)).addModifiers(PROTECTED)
             .addStatement("this.$L = new $T()", fieldName, fieldType(propertyModel))
             .addStatement("this.$L.setLabel($S)", fieldName, propertyModel.getName());
+    if (propertyModel.isDisplayReadOnly()) {
+      initFieldMethod.addStatement("this.$L.setReadOnly($L)", fieldName, true);
+    }
     if (TypeName.INT.equals(TypeName.get(propertyModel.getType()))) {
       initFieldMethod.addStatement("this.$L.setPattern($S)", fieldName, "[0-9]*")
           .addStatement("this.$L.setPreventInvalidInput(true)", fieldName)

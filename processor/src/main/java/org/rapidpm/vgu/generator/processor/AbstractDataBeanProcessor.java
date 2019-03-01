@@ -32,6 +32,7 @@ public abstract class AbstractDataBeanProcessor extends AbstractProcessor implem
     DataBeanModel dataBeanModel = new DataBeanModel(typeElement);
     dataBeanModel.setModelType(DataBeanType.valueOf(displayBeanPrisim.type()));
     dataBeanModel.getProperties().addAll(extractPropertyModel(typeElement, e -> true));
+
     List<PropertyModel> defaultFilterCandidates = new ArrayList<>();
     dataBeanModel.getFilterProperties()
         .addAll(displayBeanPrisim.customFilters().stream().map(cfPrism -> {
@@ -138,8 +139,7 @@ public abstract class AbstractDataBeanProcessor extends AbstractProcessor implem
   public List<PropertyModel> extractPropertyModel(TypeElement typeElement,
       Predicate<Element> filter) {
     List<? extends Element> enclosedElements = typeElement.getEnclosedElements();
-
-    List<PropertyModel> set = enclosedElements.stream()
+    List<PropertyModel> properties = enclosedElements.stream()
         .filter(enclosedElement -> enclosedElement.getKind().equals(ElementKind.FIELD))
         .filter(filter).map(enclosedElement -> new PropertyModel((VariableElement) enclosedElement))
         .collect(Collectors.toList());
@@ -150,9 +150,9 @@ public abstract class AbstractDataBeanProcessor extends AbstractProcessor implem
         && !superClassTypeElement.getQualifiedName().toString().equals(Object.class.getName());
 
     if (processSuperClass) {
-      set.addAll(extractPropertyModel(superClassTypeElement, filter));
+      properties.addAll(extractPropertyModel(superClassTypeElement, filter));
     }
-    return set;
+    return properties;
 
   }
 
