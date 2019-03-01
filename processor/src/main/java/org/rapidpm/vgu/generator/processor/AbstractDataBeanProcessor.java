@@ -139,10 +139,7 @@ public abstract class AbstractDataBeanProcessor extends AbstractProcessor implem
   public List<PropertyModel> extractPropertyModel(TypeElement typeElement,
       Predicate<Element> filter) {
     List<? extends Element> enclosedElements = typeElement.getEnclosedElements();
-    List<PropertyModel> properties = enclosedElements.stream()
-        .filter(enclosedElement -> enclosedElement.getKind().equals(ElementKind.FIELD))
-        .filter(filter).map(enclosedElement -> new PropertyModel((VariableElement) enclosedElement))
-        .collect(Collectors.toList());
+    List<PropertyModel> properties = new ArrayList<>();
 
     TypeElement superClassTypeElement = getSuperClassTypeElement(typeElement);
 
@@ -152,8 +149,13 @@ public abstract class AbstractDataBeanProcessor extends AbstractProcessor implem
     if (processSuperClass) {
       properties.addAll(extractPropertyModel(superClassTypeElement, filter));
     }
-    return properties;
 
+    properties.addAll(enclosedElements.stream()
+        .filter(enclosedElement -> enclosedElement.getKind().equals(ElementKind.FIELD))
+        .filter(filter).map(enclosedElement -> new PropertyModel((VariableElement) enclosedElement))
+        .collect(Collectors.toList()));
+
+    return properties;
   }
 
 
