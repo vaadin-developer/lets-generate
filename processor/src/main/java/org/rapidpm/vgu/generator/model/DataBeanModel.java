@@ -2,13 +2,17 @@ package org.rapidpm.vgu.generator.model;
 
 import static org.rapidpm.vgu.generator.codegenerator.ClassNameUtils.getPackageName;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import org.rapidpm.vgu.generator.annotation.DataBeanType;
+import org.rapidpm.vgu.generator.codegenerator.vaadin.TranslationUtil;
 import net.vergien.beanautoutils.annotation.Bean;
 
 @Bean
@@ -26,6 +30,7 @@ public class DataBeanModel {
   private Set<PropertyModel> filterProperties = new HashSet<>();
   private Optional<PropertyModel> defaultSortProperty = Optional.empty();
   private Optional<PropertyModel> defaultFilterProperty = Optional.empty();
+  private Map<String, String> translations = new HashMap<>();
 
   public DataBeanModel(String simpleName) {
     this.name = simpleName;
@@ -36,6 +41,14 @@ public class DataBeanModel {
     this.clazz = typeElement.getClass();
     this.name = typeElement.getSimpleName().toString();
     this.fqnNAme = typeElement.getQualifiedName().toString();
+    translations.put("common.ok", "OK");
+    translations.put("common.reset", "Zurücksetzen");
+    translations.put("common.cancel", "Abbrechen");
+    translations.put(TranslationUtil.captionKey(this), name);
+  }
+
+  private String nameAsProperty() {
+    return "databean." + name;
   }
 
   public Class<?> getClazz() {
@@ -126,6 +139,10 @@ public class DataBeanModel {
     this.captionMethod = captionMethod;
   }
 
+  public void addTranslation(String key, String value) {
+    translations.put(key, value);
+  }
+
   @Override
   public String toString() {
     return DataBeanModelBeanUtil.doToString(this);
@@ -162,10 +179,21 @@ public class DataBeanModel {
   }
 
   public List<PropertyModel> getProperties() {
-    return properties;
+    return Collections.unmodifiableList(properties);
   }
 
   public void setProperties(List<PropertyModel> properties) {
     this.properties = properties;
+    updateTranslations();
+  }
+
+  private void updateTranslations() {
+    for (PropertyModel property : properties) {
+      translations.put(TranslationUtil.captionKey(this, property), property.getTranslation());
+    }
+  }
+
+  public Map<String, String> getTranslations() {
+    return translations;
   }
 }

@@ -17,7 +17,8 @@ import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.tools.Diagnostic;
 import javax.tools.Diagnostic.Kind;
-import org.rapidpm.dependencies.core.logger.HasLogger;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.rapidpm.vgu.generator.annotation.Caption;
 import org.rapidpm.vgu.generator.annotation.DataBeanType;
 import org.rapidpm.vgu.generator.annotation.FilterProperty;
@@ -25,7 +26,7 @@ import org.rapidpm.vgu.generator.annotation.SortProperty;
 import org.rapidpm.vgu.generator.model.DataBeanModel;
 import org.rapidpm.vgu.generator.model.PropertyModel;
 
-public abstract class AbstractDataBeanProcessor extends AbstractProcessor implements HasLogger {
+public abstract class AbstractDataBeanProcessor extends AbstractProcessor {
 
   public DataBeanModel process(TypeElement typeElement) {
     processingEnv.getMessager().printMessage(Kind.WARNING,
@@ -33,7 +34,7 @@ public abstract class AbstractDataBeanProcessor extends AbstractProcessor implem
     DataBeanPrism displayBeanPrisim = DataBeanPrism.getInstanceOn(typeElement);
     DataBeanModel dataBeanModel = new DataBeanModel(typeElement);
     dataBeanModel.setModelType(DataBeanType.valueOf(displayBeanPrisim.type()));
-    dataBeanModel.getProperties().addAll(extractPropertyModel(typeElement, e -> true));
+    dataBeanModel.setProperties(extractPropertyModel(typeElement, e -> true));
 
     dataBeanModel.setCaptionMethod(getCaptionMethod(typeElement));
     List<PropertyModel> defaultFilterCandidates = new ArrayList<>();
@@ -62,7 +63,7 @@ public abstract class AbstractDataBeanProcessor extends AbstractProcessor implem
         dataBeanModel.setDefaultFilterProperty(Optional.ofNullable(defaultFilterCandidates.get(0)));
         break;
       default:
-        error("more than one default sort candidate found", typeElement);
+        error("more than one default sort candidate found", typeElement, null);
         break;
     }
 
@@ -126,7 +127,7 @@ public abstract class AbstractDataBeanProcessor extends AbstractProcessor implem
         dataBeanModel.setDefaultSortProperty(Optional.ofNullable(defaultSortCandidates.get(0)));
         break;
       default:
-        error("more than one default sort candidate found", typeElement);
+        error("more than one default sort candidate found", typeElement, null);
         break;
     }
   }
@@ -148,7 +149,7 @@ public abstract class AbstractDataBeanProcessor extends AbstractProcessor implem
         dataBeanModel.setDefaultSortProperty(Optional.ofNullable(defaultSortCandidates.get(0)));
         break;
       default:
-        error("more than one default sort candidate found", typeElement);
+        error("more than one default sort candidate found", typeElement, null);
         break;
     }
   }
@@ -217,12 +218,18 @@ public abstract class AbstractDataBeanProcessor extends AbstractProcessor implem
     return (TypeElement) processingEnv.getTypeUtils().asElement(supperClassMirror);
   }
 
-  protected void error(String msg, Element e) {
-    processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, msg, e);
+  protected void error(String msg, Element e, Throwable t) {
+    String stackTrace = t == null ? null : ExceptionUtils.getStackTrace(t);
+    processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
+        StringUtils.join(msg, "\n", stackTrace), e);
   }
 
   protected void warn(String msg, Element e) {
     processingEnv.getMessager().printMessage(Diagnostic.Kind.WARNING, msg, e);
+  }
+
+  protected void info(String msg, Element e) {
+    processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, msg, e);
   }
 
   public abstract void write(TypeElement typeElement, DataBeanModel dataBeanModel);

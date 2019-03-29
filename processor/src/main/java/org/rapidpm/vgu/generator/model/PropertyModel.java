@@ -59,4 +59,8 @@ public class PropertyModel {
   public boolean equals(Object obj) {
     return PropertyModelBeanUtil.doEquals(this, obj);
   }
+
+  public String getTranslation() {
+    return name;
+  }
 }

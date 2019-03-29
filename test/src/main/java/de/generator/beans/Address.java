@@ -22,6 +22,18 @@ public class Address extends BaseEntity {
   private int age;
   private String phone;
 
+  public Address() {
+    super();
+  }
+
+  public Address(int id, String fristName, String lastName, int age, String phone) {
+    super(id);
+    this.fristName = fristName;
+    this.lastName = lastName;
+    this.age = age;
+    this.phone = phone;
+  }
+
   @Caption
   public String computeCaption() {
     return getId() + " - " + fristName + " " + lastName;

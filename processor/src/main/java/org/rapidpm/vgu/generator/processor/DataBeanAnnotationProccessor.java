@@ -40,10 +40,10 @@ public class DataBeanAnnotationProccessor extends AbstractDataBeanProcessor impl
         }
       } catch (Exception e) {
         logger().severe("Failure proccessing", e);
-        error("Failure proccessing dataBean", annotation);
+        error("Failure proccessing dataBean", annotation, e);
       }
     }
-    return true;
+    return false;
   }
 
   @Override
@@ -65,7 +65,7 @@ public class DataBeanAnnotationProccessor extends AbstractDataBeanProcessor impl
       queryInterfaceGenerator.writeCode(processingEnv.getFiler(), dataBeanModel);
     } catch (IOException e1) {
       logger().severe("Failrue writing code", e1);
-      error("Failure writing code", typeElement);
+      error("Failure writing code", typeElement, e1);
     }
   }
 }

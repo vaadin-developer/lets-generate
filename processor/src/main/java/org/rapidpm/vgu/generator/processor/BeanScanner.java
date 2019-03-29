@@ -31,7 +31,6 @@ public class BeanScanner extends ElementScanner8<Void, DataBeanModel> {
     if (e.getKind() == ElementKind.FIELD) {
       FilterPropertyPrism displayPropertyPrism = FilterPropertyPrism.getInstanceOn(e);
       if (displayPropertyPrism != null) {
-        System.out.println(e + " annotated field");
         String propertyClassName;
         if (e.asType().getKind().isPrimitive()) {
           PrimitiveType pt =
@@ -42,7 +41,6 @@ public class BeanScanner extends ElementScanner8<Void, DataBeanModel> {
               processingEnvironment.getTypeUtils().asElement(e.asType()).getSimpleName().toString();
         }
         String propertyName = e.getSimpleName().toString();
-
       }
     }
     return super.visitVariable(e, p);

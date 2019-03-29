@@ -24,14 +24,15 @@ import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.textfield.IntegerNumberField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.ReadOnlyHasValue;
+import com.vaadin.flow.data.converter.StringToIntegerConverter;
 
 public class VaadinFormGenerator extends AbstractCodeGenerator {
 
   @Override
   public void writeCode(Filer filer, DataBeanModel model) throws IOException {
+    TypeSpec i18WrapperType = i18Wrapper(model);
     Builder formClassBuilder = TypeSpec.classBuilder(model.getName() + classSuffix())
         .superclass(ParameterizedTypeName.get(
             ClassName.get("com.vaadin.flow.component", "AbstractCompositeField"),
@@ -41,9 +42,10 @@ public class VaadinFormGenerator extends AbstractCodeGenerator {
         .addField(FieldSpec.builder(Button.class, "submitButton", PROTECTED).build())
         .addField(FieldSpec.builder(Button.class, "cancelButton", PROTECTED).build())
         .addField(FieldSpec.builder(Button.class, "resetButton", PROTECTED).build())
+        .addField(FieldSpec.builder(ClassName.bestGuess("I18NWrapper"), "wrapper", PRIVATE).build())
         .addMethod(setPresentationValue(model)).addField(Component.class, "layout", PROTECTED)
         .addMethod(initLayout(model)).addMethod(getContent()).addMethod(initSubmitButton(model))
-        .addMethod(initResetButton(model));
+        .addMethod(initResetButton(model)).addType(i18WrapperType);
 
     if (model.getCaptionMethod().isPresent()) {
       formClassBuilder.addField(TypeName.get(Label.class), "captionLabel", PROTECTED)
@@ -55,6 +57,17 @@ public class VaadinFormGenerator extends AbstractCodeGenerator {
       formClassBuilder.addMethod(initField(property));
     }
     writeClass(filer, model, formClassBuilder.build());
+  }
+
+  private TypeSpec i18Wrapper(DataBeanModel model) {
+    return VaadinUtils.i18Wrapper(localeChangeMethodBuilder -> {
+      for (PropertyModel propertyModel : model.getProperties()) {
+        String fieldName = fieldName(propertyModel);
+        localeChangeMethodBuilder.addStatement("$L.this.$L.setLabel(getTranslation($S))",
+            packageName(model) + "." + model.getName() + classSuffix(), fieldName,
+            TranslationUtil.captionKey(model, propertyModel));
+      }
+    });
   }
 
   private MethodSpec initCaptionLabel(DataBeanModel dataBeanModel) {
@@ -88,16 +101,18 @@ public class VaadinFormGenerator extends AbstractCodeGenerator {
     String fieldName = fieldName(propertyModel);
     com.squareup.javapoet.MethodSpec.Builder initFieldMethod =
         MethodSpec.methodBuilder(fieldInitMethodName(propertyModel)).addModifiers(PROTECTED)
-            .addStatement("this.$L = new $T()", fieldName, fieldType(propertyModel))
-            .addStatement("this.$L.setLabel($S)", fieldName, propertyModel.getName());
+            .addStatement("this.$L = new $T()", fieldName, fieldType(propertyModel));
+    // .addStatement("this.$L.setLabel($S)", fieldName, propertyModel.getName());
     if (propertyModel.isDisplayReadOnly()) {
       initFieldMethod.addStatement("this.$L.setReadOnly($L)", fieldName, true);
     }
-    if (TypeName.INT.equals(TypeName.get(propertyModel.getType()))) {
+    if (TypeName.INT.equals(TypeName.get(propertyModel.getType()))
+        || TypeName.INT.equals(TypeName.get(propertyModel.getType()).box())) {
       initFieldMethod.addStatement("this.$L.setPattern($S)", fieldName, "[0-9]*")
-          .addStatement("this.$L.setPreventInvalidInput(true)", fieldName)
-          .addStatement("this.$L.setStep(1.0)", fieldName);
-
+          .addStatement("this.$L.setPreventInvalidInput(true)", fieldName);
+    }
+    if (TypeName.get(propertyModel.getType()).isPrimitive()) {
+      initFieldMethod.addStatement("this.$L.setRequired(true)", fieldName);
     }
     return initFieldMethod.build();
   }
@@ -136,7 +151,8 @@ public class VaadinFormGenerator extends AbstractCodeGenerator {
       constructorBuilder.addStatement(fieldInitMethodName(property) + "()");
       constructorBuilder.addStatement(bindMethodName(property) + "()");
     }
-    constructorBuilder.addStatement("initLayout()");
+    constructorBuilder.addStatement("initLayout()")
+        .addStatement("this.wrapper = new I18NWrapper(layout)");
     return constructorBuilder.build();
   }
 
@@ -156,7 +172,7 @@ public class VaadinFormGenerator extends AbstractCodeGenerator {
 
   private MethodSpec getContent() {
     return MethodSpec.methodBuilder("getContent").addAnnotation(Override.class).addModifiers(PUBLIC)
-        .addStatement("return $L", "layout").returns(Component.class).build();
+        .addStatement("return $L", "wrapper").returns(Component.class).build();
   }
 
   private FieldSpec propertyField(PropertyModel propertyModel) {
@@ -170,8 +186,18 @@ public class VaadinFormGenerator extends AbstractCodeGenerator {
   private MethodSpec bindMethod(PropertyModel propertyModel) {
     com.squareup.javapoet.MethodSpec.Builder binMethodBuilder =
         MethodSpec.methodBuilder(bindMethodName(propertyModel)).addModifiers(PROTECTED);
-    binMethodBuilder.addStatement("binder.forField($L).bind($S)", fieldName(propertyModel),
-        propertyModel.getName());
+    if (TypeName.get(propertyModel.getType()).equals(TypeName.INT)
+        || TypeName.get(propertyModel.getType()).equals(TypeName.INT.box())) {
+      Class<?> converterClass = StringToIntegerConverter.class;
+      String convertErrorKey = "common.error.converter.int";
+      binMethodBuilder.addStatement(
+          "binder.forField($L).withConverter(new $T((c) -> getTranslation($S))).bind($S)",
+          fieldName(propertyModel), ClassName.get(converterClass), convertErrorKey,
+          propertyModel.getName());
+    } else {
+      binMethodBuilder.addStatement("binder.forField($L).bind($S)", fieldName(propertyModel),
+          propertyModel.getName());
+    }
     return binMethodBuilder.build();
   }
 
@@ -202,7 +228,8 @@ public class VaadinFormGenerator extends AbstractCodeGenerator {
 
   private ClassName fieldType(PropertyModel propertyModel) {
     if (TypeName.get(propertyModel.getType()).equals(TypeName.INT)) {
-      return ClassName.get(IntegerNumberField.class);
+      return ClassName.get(TextField.class);
+      // return ClassName.get(IntegerNumberField.class);
     } else {
       return ClassName.get(TextField.class);
     }

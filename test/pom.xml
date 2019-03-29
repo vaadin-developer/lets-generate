@@ -7,7 +7,7 @@
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
 	<artifactId>lets-generate-test</artifactId>
-	
+
 	<dependencies>
 		<dependency>
 			<groupId>net.vergien.lets-generate</groupId>
@@ -38,6 +38,12 @@
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-simple</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>org.hamcrest</groupId>
+			<artifactId>hamcrest-library</artifactId>
+			<version>1.3</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 	<name>Lets Generate :: Test</name>
 	<build>
@@ -47,6 +53,11 @@
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-compiler-plugin</artifactId>
 					<configuration>
+						<compilerArgs>
+							<arg>-Adebug=true</arg>
+							<arg>-XprintRounds</arg>
+							<arg>-XprintProcessorInfo</arg>
+						</compilerArgs>
 						<annotationProcessorPaths>
 							<annotationProcessorPath>
 								<groupId>net.vergien.lets-generate</groupId>

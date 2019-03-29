@@ -1,7 +1,9 @@
 package org.rapidpm.vgu.generator.codegenerator;
 
 import org.rapidpm.vgu.generator.model.DataBeanModel;
+import org.rapidpm.vgu.generator.model.PropertyModel;
 import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.TypeName;
 
 public class JPoetUtils {
   private JPoetUtils() {
@@ -23,5 +25,9 @@ public class JPoetUtils {
   public static ClassName getSortPropertyClassName(DataBeanModel model) {
     return ClassName.get(ClassNameUtils.getFilterPackage(model),
         model.getName() + "SortFields");
+  }
+
+  public static TypeName getPropertyClassName(PropertyModel model) {
+    return ClassName.get(model.getType());
   }
 }
