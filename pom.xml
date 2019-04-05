@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>org.rapidpm</groupId>
 		<artifactId>rapidpm-dependencies</artifactId>
-		<version>04.00.15-RPM</version>
+		<version>04.00.12-RPM</version>
 	</parent>
 	<groupId>net.vergien.lets-generate</groupId>
 	<artifactId>lets-generate-parent</artifactId>
@@ -20,7 +20,7 @@
 	<properties>
 		<bean-auto-utils.version>0.0.12</bean-auto-utils.version>
 		<!--RapidPM -->
-		<rapidpm-dependencies.version>04.00.15-RPM</rapidpm-dependencies.version>
+		<rapidpm-dependencies.version>04.00.12-RPM</rapidpm-dependencies.version>
 		<vaadin.version>13.0.1</vaadin.version>
 		<m2e.apt.activation>jdt_apt</m2e.apt.activation>
 	</properties>
@@ -38,7 +38,9 @@
 				<version>${vaadin.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
-			</dependency>			
+			</dependency>
+			<!-- <dependency> <groupId>com.vaadin</groupId> <artifactId>vaadin-text-field-flow</artifactId> <version>1.4-SNAPSHOT</version> 
+				</dependency> -->
 		</dependencies>
 	</dependencyManagement>
 </project>
