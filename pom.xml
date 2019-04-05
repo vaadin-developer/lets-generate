@@ -18,7 +18,7 @@
 	</modules>
 
 	<properties>
-		<bean-auto-utils.version>0.0.10</bean-auto-utils.version>
+		<bean-auto-utils.version>0.0.12</bean-auto-utils.version>
 		<!--RapidPM -->
 		<rapidpm-dependencies.version>04.00.15-RPM</rapidpm-dependencies.version>
 		<vaadin.version>13.0.1</vaadin.version>
