@@ -62,8 +62,15 @@ public class VaadinGridGenerator extends AbstractCodeGenerator {
     MethodSpec.Builder builder = MethodSpec.methodBuilder(createColumnMethodName(property))
         .returns(columnType(model)).addModifiers(PROTECTED);
 
-    builder.addStatement("return grid.addColumn($T::$L)", JPoetUtils.getBeanClassName(model),
-        ClassNameUtils.prefixCamelCase("get", property.getName()));
+    boolean isSortable = model.getSortProperties().contains(property);
+    if (isSortable) {
+      builder.addStatement("return grid.addColumn($T::$L).setSortable(true).setSortProperty($S)",
+          JPoetUtils.getBeanClassName(model),
+          ClassNameUtils.prefixCamelCase("get", property.getName()), property.getName());
+    } else {
+      builder.addStatement("return grid.addColumn($T::$L)", JPoetUtils.getBeanClassName(model),
+          ClassNameUtils.prefixCamelCase("get", property.getName()));
+    }
     return builder.build();
   }
 

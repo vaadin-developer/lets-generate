@@ -11,13 +11,14 @@ import org.infinitenature.commons.pagination.OffsetRequest;
 import org.infinitenature.commons.pagination.Slice;
 import org.infinitenature.commons.pagination.SortOrder;
 import org.infinitenature.commons.pagination.impl.SliceImpl;
+import org.rapidpm.dependencies.core.logger.HasLogger;
 import de.generator.beans.Address;
 import de.generator.beans.Contract;
 import de.generator.beans.filter.ContractFilter;
 import de.generator.beans.filter.ContractSortFields;
 import de.generator.beans.repo.ContractBaseQueries;
 
-public class ContractQueries implements ContractBaseQueries {
+public class ContractQueries implements ContractBaseQueries, HasLogger {
   private Collection<Contract> contracts;
 
   public ContractQueries() {
@@ -30,7 +31,7 @@ public class ContractQueries implements ContractBaseQueries {
   @Override
   public Slice<Contract, ContractSortFields> find(ContractFilter filter,
       OffsetRequest<ContractSortFields> offsetRequest) {
-
+    logger().info("find({}, {})", filter, offsetRequest);
     Stream<Contract> stream = filter(contracts.stream(), filter);
     SortOrder sortOrder = offsetRequest.getSortOrder();
     switch (offsetRequest.getSortField()) {
@@ -61,6 +62,7 @@ public class ContractQueries implements ContractBaseQueries {
 
   @Override
   public long count(ContractFilter filter) {
+    logger().info("count({})", filter);
     return filter(contracts.stream(), filter).count();
   }
 

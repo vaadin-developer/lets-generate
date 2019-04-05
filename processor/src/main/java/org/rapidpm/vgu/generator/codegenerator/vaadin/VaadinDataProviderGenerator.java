@@ -68,7 +68,7 @@ public class VaadinDataProviderGenerator extends AbstractCodeGenerator {
             sortOderClassName, "query", sortOderClassName, sortDirectionClassName,
             sortOderClassName, sortOderClassName)
         .addStatement(
-            "$T property = query.getSortOrders().isEmpty() ?  $T.$N : $T.valueOf(query.getSortOrders().get(0).getSorted())",
+            "$T property = query.getSortOrders().isEmpty() ?  $T.$N : $T.fromProperty(query.getSortOrders().get(0).getSorted())",
             sortPropertyClassName, sortPropertyClassName,
             ClassNameUtils.toEnumName(model.getDefaultSortProperty().get().getName()),
             sortPropertyClassName)
