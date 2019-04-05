@@ -9,7 +9,7 @@ public class Grid extends Composite<VerticalLayout> {
   public Grid() {
     ContractGrid contractGrid = new ContractGrid();
     contractGrid.setBaseQueries(new ContractQueries());
-    contractGrid.getGrid().setWidth("500px");
+    contractGrid.setSizeFull();
     getContent().add(contractGrid);
   }
 }

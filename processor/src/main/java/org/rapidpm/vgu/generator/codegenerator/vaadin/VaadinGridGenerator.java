@@ -19,6 +19,7 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Composite;
+import com.vaadin.flow.component.HasSize;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.Grid.Column;
 
@@ -29,7 +30,8 @@ public class VaadinGridGenerator extends AbstractCodeGenerator {
     TypeSpec.Builder builder = TypeSpec.classBuilder(model.getName() + classSuffix())
         .superclass(ParameterizedTypeName.get(ClassName.get(Composite.class),
             ClassName.get(Component.class)))
-        .addMethod(constructor(model)).addModifiers(PUBLIC).addType(i18Wrapper(model))
+        .addSuperinterface(HasSize.class).addMethod(constructor(model)).addModifiers(PUBLIC)
+        .addType(i18Wrapper(model))
         .addField(FieldSpec.builder(ClassName.bestGuess("I18NWrapper"), "wrapper", PRIVATE).build())
         .addField(gridType(model), "grid", PRIVATE).addMethod(getGrid(model))
         .addMethod(setBaseQueries(model)).addMethod(getContent());
