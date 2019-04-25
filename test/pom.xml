@@ -15,6 +15,11 @@
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
+			<groupId>net.vergien.lets-generate</groupId>
+			<artifactId>lets-generate-vaadin</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
 			<groupId>net.vergien.bau</groupId>
 			<artifactId>bean-auto-utils-annotations</artifactId>
 			<version>${bean-auto-utils.version}</version>

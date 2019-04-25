@@ -3,7 +3,7 @@ package org.rapidpm.vgu.generator.codegenerator;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.stream.Stream;
-import javax.annotation.processing.Filer;
+import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Modifier;
 import org.infinitenature.commons.pagination.OffsetRequest;
 import org.infinitenature.commons.pagination.SortOrder;
@@ -21,7 +21,8 @@ public class StringFilterDataProviderGenerator extends AbstractCodeGenerator {
   private static final String BASE_QUERIES_FIELD = "baseQueries";
 
   @Override
-  public void writeCode(Filer filer, DataBeanModel model) throws IOException {
+  public void writeCode(ProcessingEnvironment processingEnvironment, DataBeanModel model)
+      throws IOException {
     TypeSpec dataProviderClass =
         TypeSpec.classBuilder(model.getName() + classSuffix()).addModifiers(Modifier.PUBLIC)
             .superclass(ParameterizedTypeName.get(
@@ -31,7 +32,7 @@ public class StringFilterDataProviderGenerator extends AbstractCodeGenerator {
                 Modifier.PRIVATE)
             .addMethod(constructor(model)).addMethod(fetch(model)).addMethod(size(model))
             .addMethod(createFilter(model)).build();
-    writeClass(filer, model, dataProviderClass);
+    writeClass(processingEnvironment.getFiler(), model, dataProviderClass);
   }
 
 

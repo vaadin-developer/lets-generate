@@ -1,7 +1,7 @@
 package org.rapidpm.vgu.generator.codegenerator;
 
 import java.io.IOException;
-import javax.annotation.processing.Filer;
+import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Modifier;
 import org.infinitenature.commons.pagination.OffsetRequest;
 import org.infinitenature.commons.pagination.Slice;
@@ -15,19 +15,18 @@ import com.squareup.javapoet.TypeSpec;
 public class QueryInterfaceGenerator extends AbstractCodeGenerator {
 
   @Override
-  public void writeCode(Filer filer, DataBeanModel model) throws IOException {
+  public void writeCode(ProcessingEnvironment processingEnvironment, DataBeanModel model)
+      throws IOException {
     TypeSpec baseQueriesInterface =
         TypeSpec.interfaceBuilder(model.getName() + classSuffix()).addModifiers(Modifier.PUBLIC)
             .addMethod(findMethod(model)).addMethod(countMethod(model)).build();
-    writeClass(filer, model, baseQueriesInterface);
+    writeClass(processingEnvironment.getFiler(), model, baseQueriesInterface);
   }
 
   private MethodSpec countMethod(DataBeanModel model) {
     MethodSpec count = MethodSpec.methodBuilder("count")
         .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT).returns(TypeName.LONG)
-        .addParameter(JPoetUtils.getFilterClassName(model),
-            "filter")
-        .build();
+        .addParameter(JPoetUtils.getFilterClassName(model), "filter").build();
     return count;
   }
 

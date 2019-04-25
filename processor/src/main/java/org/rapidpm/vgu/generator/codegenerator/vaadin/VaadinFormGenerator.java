@@ -4,7 +4,7 @@ import static javax.lang.model.element.Modifier.PRIVATE;
 import static javax.lang.model.element.Modifier.PROTECTED;
 import static javax.lang.model.element.Modifier.PUBLIC;
 import java.io.IOException;
-import javax.annotation.processing.Filer;
+import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Modifier;
 import org.rapidpm.vgu.generator.codegenerator.AbstractCodeGenerator;
 import org.rapidpm.vgu.generator.codegenerator.ClassNameUtils;
@@ -31,7 +31,8 @@ import com.vaadin.flow.data.converter.StringToIntegerConverter;
 public class VaadinFormGenerator extends AbstractCodeGenerator {
 
   @Override
-  public void writeCode(Filer filer, DataBeanModel model) throws IOException {
+  public void writeCode(ProcessingEnvironment processingEnvironment, DataBeanModel model)
+      throws IOException {
     TypeSpec i18WrapperType = i18Wrapper(model);
     Builder formClassBuilder = TypeSpec.classBuilder(model.getName() + classSuffix())
         .superclass(ParameterizedTypeName.get(
@@ -56,7 +57,7 @@ public class VaadinFormGenerator extends AbstractCodeGenerator {
       formClassBuilder.addMethod(bindMethod(property));
       formClassBuilder.addMethod(initField(property));
     }
-    writeClass(filer, model, formClassBuilder.build());
+    writeClass(processingEnvironment.getFiler(), model, formClassBuilder.build());
   }
 
   private TypeSpec i18Wrapper(DataBeanModel model) {

@@ -11,7 +11,7 @@ public class Contract extends BaseEntity {
   @SortProperty(defaultSort = true)
   @FilterProperty(defaultFilter = true)
   private String name;
-
+  @FilterProperty
   private Address address;
 
   public Contract() {

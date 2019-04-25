@@ -4,13 +4,21 @@ import static org.rapidpm.vgu.generator.codegenerator.ClassNameUtils.appendSubPa
 import java.io.IOException;
 import java.io.Writer;
 import javax.annotation.processing.Filer;
+import javax.annotation.processing.ProcessingEnvironment;
 import org.apache.commons.lang3.StringUtils;
 import org.rapidpm.dependencies.core.logger.HasLogger;
 import org.rapidpm.vgu.generator.model.DataBeanModel;
+import org.rapidpm.vgu.generator.processor.APLogger;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.TypeSpec;
 
 public abstract class AbstractCodeGenerator implements CodeGenerator, HasLogger {
+  protected APLogger apLogger = null;
+
+  protected void setProccesingEnviroment(ProcessingEnvironment processingEnvironment) {
+    this.apLogger = new APLogger(processingEnvironment);
+  }
+
   public void writeClass(Filer filer, DataBeanModel model, TypeSpec typeSpec) throws IOException {
     String packageSuffix = packageSuffix();
 

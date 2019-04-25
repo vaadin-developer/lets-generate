@@ -15,6 +15,7 @@
 		<module>processor</module>
 		<module>annotations</module>
 		<module>test</module>
+		<module>vaadin</module>
 	</modules>
 
 	<properties>

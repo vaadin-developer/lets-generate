@@ -12,27 +12,26 @@ import org.infinitenature.commons.pagination.Slice;
 import org.infinitenature.commons.pagination.SortOrder;
 import org.infinitenature.commons.pagination.impl.SliceImpl;
 import org.rapidpm.dependencies.core.logger.HasLogger;
-import de.generator.beans.Address;
 import de.generator.beans.Contract;
 import de.generator.beans.filter.ContractFilter;
 import de.generator.beans.filter.ContractSortFields;
 import de.generator.beans.repo.ContractBaseQueries;
 
 public class ContractQueries implements ContractBaseQueries, HasLogger {
-  private Collection<Contract> contracts;
+  public static final Collection<Contract> CONTRACTS;
 
-  public ContractQueries() {
-    Set<Contract> contracts = new HashSet<>();
-    contracts.add(new Contract(1, "First Contract", null));
-    contracts.add(new Contract(2, "2nd. Contract", new Address(1, "Hans", "Wurst", 20, "1234")));
-    this.contracts = Collections.unmodifiableCollection(contracts);
+  static {
+    Set<Contract> c = new HashSet<>();
+    c.add(new Contract(1, "First Contract", null));
+    c.add(new Contract(2, "2nd. Contract", AddressQueries.ADDRESSES.get(0)));
+    CONTRACTS = Collections.unmodifiableCollection(c);
   }
 
   @Override
   public Slice<Contract, ContractSortFields> find(ContractFilter filter,
       OffsetRequest<ContractSortFields> offsetRequest) {
     logger().info("find({}, {})", filter, offsetRequest);
-    Stream<Contract> stream = filter(contracts.stream(), filter);
+    Stream<Contract> stream = filter(CONTRACTS.stream(), filter);
     SortOrder sortOrder = offsetRequest.getSortOrder();
     switch (offsetRequest.getSortField()) {
       case ID:
@@ -47,13 +46,17 @@ public class ContractQueries implements ContractBaseQueries, HasLogger {
       default:
         break;
     }
-    return new SliceImpl<>(stream.collect(Collectors.toList()), offsetRequest);
+    return new SliceImpl<>(stream.skip(offsetRequest.getOffset()).limit(offsetRequest.getCount())
+        .collect(Collectors.toList()), offsetRequest);
   }
 
   private Stream<Contract> filter(Stream<Contract> stream, ContractFilter filter) {
     if (StringUtils.isNotBlank(filter.getName())) {
       stream = stream
           .filter(contract -> StringUtils.containsIgnoreCase(contract.getName(), filter.getName()));
+    }
+    if (filter.getAddress() != null) {
+      stream = stream.filter(contract -> filter.getAddress().equals(contract.getAddress()));
     }
     return stream;
   }
@@ -63,7 +66,7 @@ public class ContractQueries implements ContractBaseQueries, HasLogger {
   @Override
   public long count(ContractFilter filter) {
     logger().info("count({})", filter);
-    return filter(contracts.stream(), filter).count();
+    return filter(CONTRACTS.stream(), filter).count();
   }
 
 }

@@ -2,6 +2,9 @@ package org.rapidpm.vgu.generator.codegenerator.vaadin;
 
 import static javax.lang.model.element.Modifier.PUBLIC;
 import java.util.function.Consumer;
+import javax.lang.model.element.QualifiedNameable;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeMirror;
 import org.rapidpm.vgu.generator.model.DataBeanModel;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.MethodSpec;
@@ -31,5 +34,21 @@ public class VaadinUtils {
 
   public static ClassName getDataProviderClassName(DataBeanModel model) {
     return ClassName.get(model.getPkg() + ".vaadin", model.getName() + "DataProvider");
+  }
+
+  public static ClassName getDataProviderClassName(TypeMirror type) {
+    DeclaredType dt = (DeclaredType) type;
+    String simpleName = ((QualifiedNameable) dt.asElement()).getSimpleName().toString();
+    String fullName = ((QualifiedNameable) dt.asElement()).getQualifiedName().toString();
+    String packageName = fullName.substring(0, fullName.length() - simpleName.length() - 1);
+    return ClassName.get(packageName + ".vaadin", simpleName + "DataProvider");
+  }
+
+  public static ClassName getStringDataProviderClassName(TypeMirror type) {
+    DeclaredType dt = (DeclaredType) type;
+    String simpleName = ((QualifiedNameable) dt.asElement()).getSimpleName().toString();
+    String fullName = ((QualifiedNameable) dt.asElement()).getQualifiedName().toString();
+    String packageName = fullName.substring(0, fullName.length() - simpleName.length() - 1);
+    return ClassName.get(packageName + ".vaadin", simpleName + "StringFilterDataProvider");
   }
 }

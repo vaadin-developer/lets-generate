@@ -69,7 +69,7 @@ public class VaadinDataBeanAnnotationProcessor extends AbstractDataBeanProcessor
   public void write(TypeElement typeElement, DataBeanModel dataBeanModel) {
     for (CodeGenerator generator : generators) {
       try {
-        generator.writeCode(processingEnv.getFiler(), dataBeanModel);
+        generator.writeCode(processingEnv, dataBeanModel);
       } catch (IOException e1) {
         error("Failure writing code", typeElement, e1);
       }

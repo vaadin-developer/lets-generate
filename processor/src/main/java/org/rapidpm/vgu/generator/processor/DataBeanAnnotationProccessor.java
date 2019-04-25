@@ -56,13 +56,13 @@ public class DataBeanAnnotationProccessor extends AbstractDataBeanProcessor impl
   public void write(TypeElement typeElement, DataBeanModel dataBeanModel) {
     try {
       FilterGenerator filterGenerator = new FilterGenerator();
-      filterGenerator.writeCode(processingEnv.getFiler(), dataBeanModel);
+      filterGenerator.writeCode(processingEnv, dataBeanModel);
 
       SortPropertyGenerator sortPropertyGenerator = new SortPropertyGenerator();
-      sortPropertyGenerator.writeCode(processingEnv.getFiler(), dataBeanModel);
+      sortPropertyGenerator.writeCode(processingEnv, dataBeanModel);
 
       QueryInterfaceGenerator queryInterfaceGenerator = new QueryInterfaceGenerator();
-      queryInterfaceGenerator.writeCode(processingEnv.getFiler(), dataBeanModel);
+      queryInterfaceGenerator.writeCode(processingEnv, dataBeanModel);
     } catch (IOException e1) {
       logger().severe("Failrue writing code", e1);
       error("Failure writing code", typeElement, e1);

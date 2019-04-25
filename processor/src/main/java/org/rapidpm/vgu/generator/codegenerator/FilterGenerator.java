@@ -3,7 +3,7 @@ package org.rapidpm.vgu.generator.codegenerator;
 import static org.rapidpm.vgu.generator.codegenerator.ClassNameUtils.prefixCamelCase;
 import java.io.IOException;
 import java.util.stream.Collectors;
-import javax.annotation.processing.Filer;
+import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Modifier;
 import org.rapidpm.vgu.generator.annotation.DataBeanType;
 import org.rapidpm.vgu.generator.model.DataBeanModel;
@@ -20,7 +20,8 @@ import net.vergien.beanautoutils.annotation.Bean;
 public class FilterGenerator extends AbstractCodeGenerator {
 
   @Override
-  public void writeCode(Filer filer, DataBeanModel model) throws IOException {
+  public void writeCode(ProcessingEnvironment processingEnvironment, DataBeanModel model)
+      throws IOException {
     TypeSpec filterClass =
         TypeSpec.classBuilder(model.getName() + classSuffix()).addModifiers(Modifier.PUBLIC)
             .addFields(model.getFilterProperties().stream()
@@ -32,7 +33,7 @@ public class FilterGenerator extends AbstractCodeGenerator {
             .addMethod(generateToString(model)).addMethod(generateHashCode(model))
             .addMethod(generateEquals(model)).addAnnotation(Bean.class).build();
 
-    writeClass(filer, model, filterClass);
+    writeClass(processingEnvironment.getFiler(), model, filterClass);
   }
 
   @Override

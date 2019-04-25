@@ -1,7 +1,7 @@
 package org.rapidpm.vgu.generator.codegenerator.vaadin;
 
 import java.io.IOException;
-import javax.annotation.processing.Filer;
+import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Modifier;
 import org.rapidpm.vgu.generator.codegenerator.AbstractCodeGenerator;
 import org.rapidpm.vgu.generator.codegenerator.JPoetUtils;
@@ -16,12 +16,13 @@ import com.vaadin.flow.component.ItemLabelGenerator;
 public class VaadinItemLabelGeneratorGenerator extends AbstractCodeGenerator {
 
   @Override
-  public void writeCode(Filer filer, DataBeanModel model) throws IOException {
+  public void writeCode(ProcessingEnvironment processingEnvironment, DataBeanModel model)
+      throws IOException {
     TypeSpec comboBoxClass = TypeSpec.classBuilder(model.getName() + classSuffix())
         .addModifiers(Modifier.PUBLIC).addSuperinterface(ParameterizedTypeName
             .get(ClassName.get(ItemLabelGenerator.class), JPoetUtils.getBeanClassName(model)))
         .addMethod(apply(model)).build();
-    writeClass(filer, model, comboBoxClass);
+    writeClass(processingEnvironment.getFiler(), model, comboBoxClass);
   }
 
   private MethodSpec apply(DataBeanModel model) {

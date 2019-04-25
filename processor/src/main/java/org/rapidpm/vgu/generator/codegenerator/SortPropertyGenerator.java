@@ -2,7 +2,7 @@ package org.rapidpm.vgu.generator.codegenerator;
 
 import static org.rapidpm.vgu.generator.codegenerator.ClassNameUtils.toEnumName;
 import java.io.IOException;
-import javax.annotation.processing.Filer;
+import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Modifier;
 import org.rapidpm.vgu.generator.model.DataBeanModel;
 import com.squareup.javapoet.ClassName;
@@ -13,7 +13,8 @@ import com.squareup.javapoet.TypeSpec.Builder;
 public class SortPropertyGenerator extends AbstractCodeGenerator {
 
   @Override
-  public void writeCode(Filer filer, DataBeanModel model) throws IOException {
+  public void writeCode(ProcessingEnvironment processingEnvironment, DataBeanModel model)
+      throws IOException {
     if (!model.getSortProperties().isEmpty()) {
 
       Builder enumBuilder = TypeSpec.enumBuilder(enumName(model)).addModifiers(Modifier.PUBLIC);
@@ -29,7 +30,7 @@ public class SortPropertyGenerator extends AbstractCodeGenerator {
       TypeSpec typeSpec = enumBuilder.build();
 
 
-      writeClass(filer, model, typeSpec);
+      writeClass(processingEnvironment.getFiler(), model, typeSpec);
     }
   }
 
