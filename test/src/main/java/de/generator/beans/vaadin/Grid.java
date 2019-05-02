@@ -2,8 +2,6 @@ package de.generator.beans.vaadin;
 
 import org.rapidpm.vgu.vaadin.FilterGrid.FilterBuilder;
 import com.vaadin.flow.component.Composite;
-import com.vaadin.flow.component.HasValue;
-import com.vaadin.flow.component.HasValue.ValueChangeEvent;
 import com.vaadin.flow.component.grid.Grid.Column;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
@@ -30,16 +28,17 @@ public class Grid extends Composite<VerticalLayout> {
       @Override
       public ContractFilter buildFilter() {
         ContractFilter filter = new ContractFilter();
-        Address address =
-            ((HasValue<ValueChangeEvent<Address>, Address>) contractGrid.getAddressFilterField())
-                .getValue();
+        Address address = contractGrid.getAddressFilterField().getValue();
         filter.setAddress(address);
-        filter.setName(
-            ((HasValue<ValueChangeEvent<String>, String>) contractGrid.getNameFilterField())
-                .getValue());
+        filter.setName(contractGrid.getNameFilterField().getValue());
         return filter;
       }
     });
-    getContent().add(contractGrid);
+
+    ContractForm details = new ContractForm();
+    details.setAddressBaseQueries(new AddressQueries());
+    contractGrid.getGrid().addSelectionListener(
+        event -> details.setValue(event.getFirstSelectedItem().orElseGet(null)));
+    getContent().add(new VerticalLayout(contractGrid, details));
   }
 }

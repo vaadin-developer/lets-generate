@@ -23,8 +23,7 @@ public class PropertyModel {
     this.name = variableElement.getSimpleName().toString();
     this.variableElement = Optional.ofNullable(variableElement);
     this.displayReadOnly = variableElement.getAnnotation(DisplayReadOnly.class) != null;
-    this.dataBean = type.getKind().equals(TypeKind.DECLARED)
-        && ((DeclaredType) type).asElement().getAnnotation(DataBean.class) != null;
+    this.dataBean = isDataBean(type);
   }
 
   public PropertyModel(String name, TypeMirror type) {
@@ -33,7 +32,11 @@ public class PropertyModel {
     this.name = name;
     this.variableElement = Optional.empty();
     this.displayReadOnly = false;
-    this.dataBean = type.getKind().equals(TypeKind.DECLARED)
+    this.dataBean = isDataBean(type);
+  }
+
+  private boolean isDataBean(TypeMirror type) {
+    return type.getKind().equals(TypeKind.DECLARED)
         && ((DeclaredType) type).asElement().getAnnotation(DataBean.class) != null;
   }
 

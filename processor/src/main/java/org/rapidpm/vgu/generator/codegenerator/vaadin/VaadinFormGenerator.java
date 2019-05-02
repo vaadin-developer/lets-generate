@@ -4,8 +4,15 @@ import static javax.lang.model.element.Modifier.PRIVATE;
 import static javax.lang.model.element.Modifier.PROTECTED;
 import static javax.lang.model.element.Modifier.PUBLIC;
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Modifier;
+import javax.lang.model.type.TypeMirror;
+import javax.tools.Diagnostic.Kind;
 import org.rapidpm.vgu.generator.codegenerator.AbstractCodeGenerator;
 import org.rapidpm.vgu.generator.codegenerator.ClassNameUtils;
 import org.rapidpm.vgu.generator.codegenerator.JPoetUtils;
@@ -14,6 +21,7 @@ import org.rapidpm.vgu.generator.model.PropertyModel;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
@@ -24,15 +32,18 @@ import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.binder.HasFilterableDataProvider;
 import com.vaadin.flow.data.binder.ReadOnlyHasValue;
 import com.vaadin.flow.data.converter.StringToIntegerConverter;
 
 public class VaadinFormGenerator extends AbstractCodeGenerator {
+  private ProcessingEnvironment processingEnvironment;
+  private FieldCreatorFactory fieldCreatorFacktory = new FieldCreatorFactory();
 
   @Override
   public void writeCode(ProcessingEnvironment processingEnvironment, DataBeanModel model)
       throws IOException {
+    this.processingEnvironment = processingEnvironment;
     TypeSpec i18WrapperType = i18Wrapper(model);
     Builder formClassBuilder = TypeSpec.classBuilder(model.getName() + classSuffix())
         .superclass(ParameterizedTypeName.get(
@@ -56,8 +67,34 @@ public class VaadinFormGenerator extends AbstractCodeGenerator {
       formClassBuilder.addField(propertyField(property));
       formClassBuilder.addMethod(bindMethod(property));
       formClassBuilder.addMethod(initField(property));
+      MethodSpec createFieldMethodSpec = createField(property);
+      if (createFieldMethodSpec != null)
+        formClassBuilder.addMethod(createFieldMethodSpec);
+    }
+    Map<TypeMirror, List<PropertyModel>> dependendDataBeans = model.getFilterProperties().stream()
+        .filter(PropertyModel::isDataBean).collect(Collectors.groupingBy(PropertyModel::getType));
+    for (TypeMirror type : dependendDataBeans.keySet()) {
+      formClassBuilder.addMethod(createDepenedDataBeanSetBaseQueries(type,
+          dependendDataBeans.get(type), pro -> fieldName(pro)));
     }
     writeClass(processingEnvironment.getFiler(), model, formClassBuilder.build());
+  }
+
+  private MethodSpec createDepenedDataBeanSetBaseQueries(TypeMirror type,
+      List<PropertyModel> properties, Function<PropertyModel, String> fieldName) {
+
+    MethodSpec.Builder builder = MethodSpec
+        .methodBuilder("set" + JPoetUtils.getBaseQueriesClassName(type).simpleName())
+        .addModifiers(PUBLIC).addParameter(
+            ParameterSpec.builder(JPoetUtils.getBaseQueriesClassName(type), "baseQueries").build());
+
+    for (PropertyModel property : properties) {
+      builder.addStatement("(($T)$L).setDataProvider(new $T(baseQueries))",
+          ParameterizedTypeName.get(ClassName.get(HasFilterableDataProvider.class),
+              ClassName.get(type), ClassName.get(String.class)),
+          fieldName.apply(property), VaadinUtils.getStringDataProviderClassName(type));
+    }
+    return builder.build();
   }
 
   private TypeSpec i18Wrapper(DataBeanModel model) {
@@ -98,24 +135,47 @@ public class VaadinFormGenerator extends AbstractCodeGenerator {
         model.getName() + classSuffix());
   }
 
+  private MethodSpec createField(PropertyModel propertyModel) {
+    FieldCreator creator = getFieldCreator(propertyModel);
+    com.squareup.javapoet.MethodSpec.Builder createFieldMethod =
+        MethodSpec.methodBuilder(fieldCreateMethodName(propertyModel)).addModifiers(PROTECTED)
+            .returns(creator.getFieldType());
+    creator.createAndReturnField(createFieldMethod);
+    return createFieldMethod.build();
+  }
+
+  private FieldCreator getFieldCreator(PropertyModel propertyModel) {
+    Optional<FieldCreator> fieldCreator =
+        fieldCreatorFacktory.getFieldCreator(TypeName.get(propertyModel.getType()));
+    FieldCreator creator;
+    if (!fieldCreator.isPresent()) {
+      String msg = "No FieldCreator found for type: " + TypeName.get(propertyModel.getType());
+      processingEnvironment.getMessager().printMessage(Kind.WARNING, msg,
+          propertyModel.getVariableElement().orElse(null));
+      if (propertyModel.isDataBean()) {
+        creator = new DataBeanFieldCreator(propertyModel);
+      } else {
+        creator = new TextFieldCreator();
+      }
+    } else {
+      creator = fieldCreator.get();
+    }
+    return creator;
+  }
+
   private MethodSpec initField(PropertyModel propertyModel) {
     String fieldName = fieldName(propertyModel);
     com.squareup.javapoet.MethodSpec.Builder initFieldMethod =
-        MethodSpec.methodBuilder(fieldInitMethodName(propertyModel)).addModifiers(PROTECTED)
-            .addStatement("this.$L = new $T()", fieldName, fieldType(propertyModel));
-    // .addStatement("this.$L.setLabel($S)", fieldName, propertyModel.getName());
-    if (propertyModel.isDisplayReadOnly()) {
-      initFieldMethod.addStatement("this.$L.setReadOnly($L)", fieldName, true);
-    }
-    if (TypeName.INT.equals(TypeName.get(propertyModel.getType()))
-        || TypeName.INT.equals(TypeName.get(propertyModel.getType()).box())) {
-      initFieldMethod.addStatement("this.$L.setPattern($S)", fieldName, "[0-9]*")
-          .addStatement("this.$L.setPreventInvalidInput(true)", fieldName);
-    }
+        MethodSpec.methodBuilder(fieldInitMethodName(propertyModel)).addModifiers(PROTECTED);
     if (TypeName.get(propertyModel.getType()).isPrimitive()) {
       initFieldMethod.addStatement("this.$L.setRequired(true)", fieldName);
     }
+
     return initFieldMethod.build();
+  }
+
+  private String fieldCreateMethodName(PropertyModel propertyModel) {
+    return "create" + ClassNameUtils.capitalizeFirstLetter(fieldName(propertyModel));
   }
 
   private String fieldInitMethodName(PropertyModel propertyModel) {
@@ -149,6 +209,8 @@ public class VaadinFormGenerator extends AbstractCodeGenerator {
       constructorBuilder.addStatement("bindCaptionLabel()");
     }
     for (PropertyModel property : model.getProperties()) {
+      constructorBuilder.addStatement("this.$L = " + fieldCreateMethodName(property) + "()",
+          fieldName(property));
       constructorBuilder.addStatement(fieldInitMethodName(property) + "()");
       constructorBuilder.addStatement(bindMethodName(property) + "()");
     }
@@ -228,11 +290,7 @@ public class VaadinFormGenerator extends AbstractCodeGenerator {
   }
 
   private ClassName fieldType(PropertyModel propertyModel) {
-    if (TypeName.get(propertyModel.getType()).equals(TypeName.INT)) {
-      return ClassName.get(TextField.class);
-      // return ClassName.get(IntegerNumberField.class);
-    } else {
-      return ClassName.get(TextField.class);
-    }
+    FieldCreator fieldCreator = getFieldCreator(propertyModel);
+    return fieldCreator.getFieldType();
   }
 }

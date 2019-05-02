@@ -4,6 +4,7 @@ import javax.lang.model.element.QualifiedNameable;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
 import org.rapidpm.vgu.generator.model.DataBeanModel;
+import org.rapidpm.vgu.generator.model.PropertyModel;
 import com.squareup.javapoet.ClassName;
 
 public class VaadinClassNameUtils {
@@ -19,6 +20,10 @@ public class VaadinClassNameUtils {
     return getComboboxClassName(model.getPkg(), model.getName());
   }
 
+  public static ClassName getComboboxClassName(PropertyModel model) {
+    return getComboboxClassName(model.getType());
+  }
+
   private static ClassName getComboboxClassName(String packageName, String className) {
     return ClassName.get(packageName + ".vaadin", className + "ComboBox");
   }
@@ -31,4 +36,6 @@ public class VaadinClassNameUtils {
 
     return getComboboxClassName(packageName, simpleName);
   }
+
+
 }

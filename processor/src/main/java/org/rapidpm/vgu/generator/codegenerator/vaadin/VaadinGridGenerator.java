@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.type.TypeMirror;
@@ -37,6 +38,7 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.HasFilterableDataProvider;
 
 public class VaadinGridGenerator extends AbstractCodeGenerator {
+  private FieldCreatorFactory fieldCreatorFacktory = new FieldCreatorFactory();
 
   @Override
   public void writeCode(ProcessingEnvironment processingEnvironment, DataBeanModel model)
@@ -63,16 +65,15 @@ public class VaadinGridGenerator extends AbstractCodeGenerator {
     }
     Map<TypeMirror, List<PropertyModel>> dependendDataBeans = model.getFilterProperties().stream()
         .filter(PropertyModel::isDataBean).collect(Collectors.groupingBy(PropertyModel::getType));
-
     for (TypeMirror type : dependendDataBeans.keySet()) {
-      builder.addMethod(createDepenedDataBeanSetBaseQueries(type, dependendDataBeans.get(type)));
+      builder.addMethod(createDepenedDataBeanSetBaseQueries(type, dependendDataBeans.get(type),
+          pro -> filterComponentName(pro)));
     }
-   // builder.addType(filterBuilder(model, model.getFilterProperties()));
     writeClass(processingEnvironment.getFiler(), model, builder.build());
   }
 
   private MethodSpec createDepenedDataBeanSetBaseQueries(TypeMirror type,
-      List<PropertyModel> properties) {
+      List<PropertyModel> properties, Function<PropertyModel, String> fieldName) {
 
     MethodSpec.Builder builder = MethodSpec
         .methodBuilder("set" + JPoetUtils.getBaseQueriesClassName(type).simpleName())
@@ -83,7 +84,7 @@ public class VaadinGridGenerator extends AbstractCodeGenerator {
       builder.addStatement("(($T)$L).setDataProvider(new $T(baseQueries))",
           ParameterizedTypeName.get(ClassName.get(HasFilterableDataProvider.class),
               ClassName.get(type), ClassName.get(String.class)),
-          filterComponentName(property), VaadinUtils.getStringDataProviderClassName(type));
+          fieldName.apply(property), VaadinUtils.getStringDataProviderClassName(type));
     }
     return builder.build();
   }
@@ -135,10 +136,22 @@ public class VaadinGridGenerator extends AbstractCodeGenerator {
   }
 
   private MethodSpec createFilterFieldGetter(DataBeanModel model, PropertyModel property) {
+
+    // ((HasValue<ValueChangeEvent<Address>, Address>)
+
+    TypeName hasValueType = hasValueType(property);
     MethodSpec.Builder builder = MethodSpec.methodBuilder(createFilterFieldGetterName(property))
-        .returns(Component.class).addModifiers(PUBLIC);
-    builder.addStatement("return $L", filterComponentName(property));
+        .returns(hasValueType).addModifiers(PUBLIC);
+    builder.addStatement("return ($T) $L", hasValueType, filterComponentName(property));
     return builder.build();
+  }
+
+  private TypeName hasValueType(PropertyModel property) {
+    TypeName hasValueType = ParameterizedTypeName.get(ClassName.get(HasValue.class),
+        ParameterizedTypeName.get(ClassName.get(ValueChangeEvent.class),
+            JPoetUtils.getPropertyClassName(property).box()),
+        JPoetUtils.getPropertyClassName(property).box());
+    return hasValueType;
   }
 
   private MethodSpec constructor(DataBeanModel model) {

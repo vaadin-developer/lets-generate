@@ -13,7 +13,7 @@
 			<groupId>net.vergien.lets-generate</groupId>
 			<artifactId>lets-generate-annotations</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
-		</dependency>
+		</dependency>		
 		<dependency>
 			<groupId>net.vergien.lets-generate</groupId>
 			<artifactId>lets-generate-vaadin</artifactId>
@@ -62,12 +62,12 @@
 							<arg>-Adebug=true</arg>
 							<arg>-XprintRounds</arg>
 							<arg>-XprintProcessorInfo</arg>
-						</compilerArgs>
-						<annotationProcessorPaths>
+						</compilerArgs>						
+						<annotationProcessorPaths>						
 							<annotationProcessorPath>
 								<groupId>net.vergien.lets-generate</groupId>
 								<artifactId>lets-generate-processor</artifactId>
-								<version>${project.version}</version>
+								<version>${project.version}</version>							
 							</annotationProcessorPath>
 							<annotationProcessorPath>
 								<groupId>net.vergien.bau</groupId>
