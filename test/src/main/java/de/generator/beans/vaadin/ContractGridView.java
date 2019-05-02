@@ -6,9 +6,9 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
 import de.generator.beans.Contract;
 
-@Route("grid")
-public class Grid extends Composite<VerticalLayout> {
-  public Grid() {
+@Route("contractGrid")
+public class ContractGridView extends Composite<VerticalLayout> {
+  public ContractGridView() {
     ContractGrid contractGrid = new ContractGrid() {
       @Override
       protected Column<Contract> createAddressColumn() {

@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.processing.ProcessingEnvironment;
+import javax.lang.model.element.Modifier;
 import javax.lang.model.type.TypeMirror;
 import org.rapidpm.vgu.generator.codegenerator.ClassNameUtils;
 import org.rapidpm.vgu.generator.codegenerator.JPoetUtils;
@@ -31,9 +32,13 @@ import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.HasSize;
 import com.vaadin.flow.component.HasValue;
 import com.vaadin.flow.component.HasValue.ValueChangeEvent;
+import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.grid.Grid.Column;
 import com.vaadin.flow.component.grid.HeaderRow;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.binder.HasFilterableDataProvider;
+import com.vaadin.flow.data.binder.ValidationException;
 
 public class VaadinGridGenerator extends AbstractVaadinCodeGenerator {
   @Override
@@ -49,7 +54,11 @@ public class VaadinGridGenerator extends AbstractVaadinCodeGenerator {
         .addField(FieldSpec.builder(ClassName.bestGuess("I18NWrapper"), "wrapper", PRIVATE).build())
         .addField(gridType(model), "grid", PRIVATE).addMethod(getGrid(model))
         .addField(FieldSpec.builder(HeaderRow.class, "filterRow", PRIVATE).build())
-        .addMethod(setBaseQueries(model)).addMethod(getContent());
+        .addField(FieldSpec.builder(Text.class, "countLabel", PROTECTED)
+            .initializer("new $T($S)", ClassName.get(Text.class), "").build())
+        .addField(FieldSpec.builder(Component.class, "customFilterLayout", PROTECTED).build())
+        .addMethod(setBaseQueries(model)).addMethod(getContent())
+        .addMethod(updateCountLabelMethod()).addMethod(layoutCustomFilters());
 
     for (PropertyModel property : model.getProperties()) {
       builder.addField(columnType(model), columnName(property), PRIVATE);
@@ -71,6 +80,14 @@ public class VaadinGridGenerator extends AbstractVaadinCodeGenerator {
     writeClass(processingEnvironment.getFiler(), model, builder.build());
   }
 
+  private MethodSpec layoutCustomFilters() {
+    MethodSpec.Builder builder =
+        MethodSpec.methodBuilder("layoutCustomFilters").addModifiers(PROTECTED);
+    builder.addStatement("this.customFilterLayout = new $T($L)",
+        ClassName.get(VerticalLayout.class), "countLabel");
+    return builder.build();
+  }
+
   private MethodSpec createDepenedDataBeanSetBaseQueries(TypeMirror type,
       List<PropertyModel> properties, Function<PropertyModel, String> fieldName) {
 
@@ -88,12 +105,23 @@ public class VaadinGridGenerator extends AbstractVaadinCodeGenerator {
     return builder.build();
   }
 
+  private MethodSpec updateCountLabelMethod() {
+    MethodSpec.Builder builder =
+        MethodSpec.methodBuilder("updateCountLabel").addModifiers(PROTECTED)
+            .addParameter(ParameterSpec.builder(TypeName.INT, "newSize", Modifier.FINAL).build());
+    builder.addStatement("countLabel.setText(getTranslation(\"common.count\", newSize))");
+    return builder.build();
+  }
+
   private MethodSpec setBaseQueries(DataBeanModel model) {
     MethodSpec.Builder builder = MethodSpec.methodBuilder("setBaseQueries").addModifiers(PUBLIC)
         .addParameter(
             ParameterSpec.builder(JPoetUtils.getBaseQueriesClassName(model), "baseQueries").build())
-        .addStatement("grid.setFilterableDataProvider(new $T(baseQueries))",
-            VaadinUtils.getDataProviderClassName(model));
+        .addStatement("$T dataProvider = new $T(baseQueries)",
+            VaadinUtils.getDataProviderClassName(model),
+            VaadinUtils.getDataProviderClassName(model))
+        .addStatement("dataProvider.addSizeChangeListener(newSize -> updateCountLabel(newSize))")
+        .addStatement("grid.setFilterableDataProvider(dataProvider)");
     return builder.build();
   }
 
@@ -145,21 +173,24 @@ public class VaadinGridGenerator extends AbstractVaadinCodeGenerator {
   private MethodSpec constructor(DataBeanModel model) {
     Builder builder = MethodSpec.constructorBuilder().addModifiers(PUBLIC)
         .addStatement("this.grid = new $T<>()", ClassName.get(FilterGrid.class))
-        .addStatement("this.grid.setFilterBuilder(new " + model.getName() + "FilterBuilder())")
-        .addStatement("this.filterRow = grid.appendHeaderRow()");
 
+        .addStatement("this.filterRow = grid.appendHeaderRow()");
+    for (PropertyModel filterProperty : model.getFilterProperties()) {
+      builder.addStatement("this.$L = $L()", filterComponentName(filterProperty),
+          createFilterFieldMethodName(filterProperty));
+    }
     for (PropertyModel property : model.getProperties()) {
       builder.addStatement("this.$L = $L()", columnName(property),
           createColumnMethodName(property));
       if (model.getFilterProperties().contains(property)) {
-        builder.addStatement("this.$L = $L()", filterComponentName(property),
-            createFilterFieldMethodName(property));
         builder.addStatement("this.grid.addFilter($L, $L)", columnName(property),
             filterComponentName(property));
       }
-
     }
-    builder.addStatement("this.wrapper = new I18NWrapper(grid)");
+    builder.addStatement("this.grid.setFilterBuilder(new " + model.getName() + "FilterBuilder())");
+    builder.addStatement("layoutCustomFilters()");
+    builder.addStatement("this.wrapper = new I18NWrapper(new $T(customFilterLayout, grid))",
+        ClassName.get(VerticalLayout.class));
     return builder.build();
   }
 
@@ -210,20 +241,30 @@ public class VaadinGridGenerator extends AbstractVaadinCodeGenerator {
             .addSuperinterface(ParameterizedTypeName.get(ClassName.get(FilterBuilder.class),
                 JPoetUtils.getFilterClassName(model)))
             .addModifiers(PUBLIC);
+    builder.addField(FieldSpec
+        .builder(ParameterizedTypeName.get(ClassName.get(Binder.class),
+            JPoetUtils.getFilterClassName(model)), "binder", PROTECTED)
+        .initializer("new $T<>($T.class)", ClassName.get(Binder.class),
+            JPoetUtils.getFilterClassName(model))
+        .build());
+    Builder constructorBuilder = MethodSpec.constructorBuilder().addModifiers(PUBLIC);
+    for (PropertyModel filterProperty : filterProperties) {
+      constructorBuilder.addStatement("this.binder.forField((($T) $L)).bind($S)",
+          ParameterizedTypeName.get(ClassName.get(HasValue.class),
+              WildcardTypeName.subtypeOf(ClassName.get(ValueChangeEvent.class)),
+              JPoetUtils.getPropertyClassName(filterProperty).box()),
+          filterComponentName(filterProperty), filterProperty.getName());
+    }
+    builder.addMethod(constructorBuilder.build());
     Builder methodBuilder = MethodSpec.methodBuilder("buildFilter").addAnnotation(Override.class)
         .addModifiers(PUBLIC).returns(JPoetUtils.getFilterClassName(model));
 
     methodBuilder.addStatement("$T filter = new $T()", JPoetUtils.getFilterClassName(model),
         JPoetUtils.getFilterClassName(model));
 
-    for (PropertyModel filterProperty : filterProperties) {
-      methodBuilder.addStatement(
-          "filter.set" + ClassNameUtils.capitalizeFirstLetter(filterProperty.getName()) + "("
-              + "(($T)" + filterComponentName(filterProperty) + ")" + ".getValue())",
-          ParameterizedTypeName.get(ClassName.get(HasValue.class),
-              WildcardTypeName.subtypeOf(ClassName.get(ValueChangeEvent.class)),
-              JPoetUtils.getPropertyClassName(filterProperty).box()));
-    }
+    methodBuilder.beginControlFlow("try").addStatement("binder.writeBean(filter)")
+        .nextControlFlow("catch ($T e)", ValidationException.class)
+        .addStatement(" e.printStackTrace()").endControlFlow();
     methodBuilder.addStatement("return filter");
     builder.addMethod(methodBuilder.build());
     return builder.build();

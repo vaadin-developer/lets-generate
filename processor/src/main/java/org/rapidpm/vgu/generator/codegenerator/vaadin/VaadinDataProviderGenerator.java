@@ -11,6 +11,7 @@ import org.rapidpm.vgu.generator.codegenerator.AbstractCodeGenerator;
 import org.rapidpm.vgu.generator.codegenerator.ClassNameUtils;
 import org.rapidpm.vgu.generator.codegenerator.JPoetUtils;
 import org.rapidpm.vgu.generator.model.DataBeanModel;
+import org.rapidpm.vgu.vaadin.SizeChangeAwareDataProvider;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
@@ -28,7 +29,7 @@ public class VaadinDataProviderGenerator extends AbstractCodeGenerator {
     TypeSpec dataProviderClass =
         TypeSpec.classBuilder(model.getName() + classSuffix()).addModifiers(Modifier.PUBLIC)
             .superclass(ParameterizedTypeName.get(
-                ClassName.get("com.vaadin.flow.data.provider", "AbstractBackEndDataProvider"),
+                ClassName.get(SizeChangeAwareDataProvider.class),
                 JPoetUtils.getBeanClassName(model), filterClassName(model)))
             .addField(JPoetUtils.getBaseQueriesClassName(model), BASE_QUERIES_FIELD,
                 Modifier.PRIVATE)

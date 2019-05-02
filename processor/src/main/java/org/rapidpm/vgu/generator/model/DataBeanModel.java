@@ -44,6 +44,7 @@ public class DataBeanModel {
     translations.put("common.ok", "OK");
     translations.put("common.reset", "Zurücksetzen");
     translations.put("common.cancel", "Abbrechen");
+    translations.put("common.count", "Anzahl: {0}");
     translations.put(TranslationUtil.captionKey(this), name);
   }
 
