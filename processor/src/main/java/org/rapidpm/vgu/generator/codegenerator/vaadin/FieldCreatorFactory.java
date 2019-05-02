@@ -28,9 +28,10 @@ public class FieldCreatorFactory implements HasLogger {
 
   }
 
-  public Optional<FieldCreator> getFieldCreator(TypeName typeName) {
+  public Optional<FieldCreator> getFieldCreator(TypeName typeName, FieldType fieldType) {
     return StreamSupport.stream(fieldCreatorLoader.spliterator(), false)
         .filter(creator -> creator.isResponsibleFor(typeName))
-        .sorted(Comparator.comparingInt(FieldCreator::getPriority).reversed()).findFirst();
+        .sorted(Comparator
+            .comparingInt(fieldCreator -> ((FieldCreator) fieldCreator).getPriority(fieldType)).reversed()).findFirst();
   }
 }

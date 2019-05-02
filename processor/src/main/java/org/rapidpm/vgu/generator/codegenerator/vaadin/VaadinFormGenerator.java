@@ -6,14 +6,11 @@ import static javax.lang.model.element.Modifier.PUBLIC;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.type.TypeMirror;
-import javax.tools.Diagnostic.Kind;
-import org.rapidpm.vgu.generator.codegenerator.AbstractCodeGenerator;
 import org.rapidpm.vgu.generator.codegenerator.ClassNameUtils;
 import org.rapidpm.vgu.generator.codegenerator.JPoetUtils;
 import org.rapidpm.vgu.generator.model.DataBeanModel;
@@ -36,14 +33,12 @@ import com.vaadin.flow.data.binder.HasFilterableDataProvider;
 import com.vaadin.flow.data.binder.ReadOnlyHasValue;
 import com.vaadin.flow.data.converter.StringToIntegerConverter;
 
-public class VaadinFormGenerator extends AbstractCodeGenerator {
-  private ProcessingEnvironment processingEnvironment;
-  private FieldCreatorFactory fieldCreatorFacktory = new FieldCreatorFactory();
+public class VaadinFormGenerator extends AbstractVaadinCodeGenerator {
 
   @Override
   public void writeCode(ProcessingEnvironment processingEnvironment, DataBeanModel model)
       throws IOException {
-    this.processingEnvironment = processingEnvironment;
+    setProccesingEnviroment(processingEnvironment);
     TypeSpec i18WrapperType = i18Wrapper(model);
     Builder formClassBuilder = TypeSpec.classBuilder(model.getName() + classSuffix())
         .superclass(ParameterizedTypeName.get(
@@ -139,28 +134,9 @@ public class VaadinFormGenerator extends AbstractCodeGenerator {
     FieldCreator creator = getFieldCreator(propertyModel);
     com.squareup.javapoet.MethodSpec.Builder createFieldMethod =
         MethodSpec.methodBuilder(fieldCreateMethodName(propertyModel)).addModifiers(PROTECTED)
-            .returns(creator.getFieldType());
-    creator.createAndReturnField(createFieldMethod);
+            .returns(creator.getFormFieldClassName());
+    creator.createAndReturnFormField(createFieldMethod);
     return createFieldMethod.build();
-  }
-
-  private FieldCreator getFieldCreator(PropertyModel propertyModel) {
-    Optional<FieldCreator> fieldCreator =
-        fieldCreatorFacktory.getFieldCreator(TypeName.get(propertyModel.getType()));
-    FieldCreator creator;
-    if (!fieldCreator.isPresent()) {
-      String msg = "No FieldCreator found for type: " + TypeName.get(propertyModel.getType());
-      processingEnvironment.getMessager().printMessage(Kind.WARNING, msg,
-          propertyModel.getVariableElement().orElse(null));
-      if (propertyModel.isDataBean()) {
-        creator = new DataBeanFieldCreator(propertyModel);
-      } else {
-        creator = new TextFieldCreator();
-      }
-    } else {
-      creator = fieldCreator.get();
-    }
-    return creator;
   }
 
   private MethodSpec initField(PropertyModel propertyModel) {
@@ -291,6 +267,6 @@ public class VaadinFormGenerator extends AbstractCodeGenerator {
 
   private ClassName fieldType(PropertyModel propertyModel) {
     FieldCreator fieldCreator = getFieldCreator(propertyModel);
-    return fieldCreator.getFieldType();
+    return fieldCreator.getFormFieldClassName();
   }
 }

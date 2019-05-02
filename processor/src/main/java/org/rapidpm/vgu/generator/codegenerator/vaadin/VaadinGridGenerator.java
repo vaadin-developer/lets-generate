@@ -11,7 +11,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.type.TypeMirror;
-import org.rapidpm.vgu.generator.codegenerator.AbstractCodeGenerator;
 import org.rapidpm.vgu.generator.codegenerator.ClassNameUtils;
 import org.rapidpm.vgu.generator.codegenerator.JPoetUtils;
 import org.rapidpm.vgu.generator.model.DataBeanModel;
@@ -34,21 +33,19 @@ import com.vaadin.flow.component.HasValue;
 import com.vaadin.flow.component.HasValue.ValueChangeEvent;
 import com.vaadin.flow.component.grid.Grid.Column;
 import com.vaadin.flow.component.grid.HeaderRow;
-import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.HasFilterableDataProvider;
 
-public class VaadinGridGenerator extends AbstractCodeGenerator {
-  private FieldCreatorFactory fieldCreatorFacktory = new FieldCreatorFactory();
-
+public class VaadinGridGenerator extends AbstractVaadinCodeGenerator {
   @Override
   public void writeCode(ProcessingEnvironment processingEnvironment, DataBeanModel model)
       throws IOException {
     setProccesingEnviroment(processingEnvironment);
     TypeSpec.Builder builder = TypeSpec.classBuilder(model.getName() + classSuffix())
+        .addJavadoc("Generated grid component for {@link $T}", JPoetUtils.getBeanClassName(model))
         .superclass(ParameterizedTypeName.get(ClassName.get(Composite.class),
             ClassName.get(Component.class)))
         .addSuperinterface(HasSize.class).addMethod(constructor(model)).addModifiers(PUBLIC)
-        .addType(i18Wrapper(model))
+        .addType(i18Wrapper(model)).addType(filterBuilder(model, model.getFilterProperties()))
         .addField(FieldSpec.builder(ClassName.bestGuess("I18NWrapper"), "wrapper", PRIVATE).build())
         .addField(gridType(model), "grid", PRIVATE).addMethod(getGrid(model))
         .addField(FieldSpec.builder(HeaderRow.class, "filterRow", PRIVATE).build())
@@ -57,12 +54,14 @@ public class VaadinGridGenerator extends AbstractCodeGenerator {
     for (PropertyModel property : model.getProperties()) {
       builder.addField(columnType(model), columnName(property), PRIVATE);
       builder.addMethod(createColumnMethod(model, property));
-      if (model.getFilterProperties().contains(property)) {
-        builder.addField(Component.class, filterComponentName(property), PROTECTED);
-        builder.addMethod(createFilterFieldMethod(model, property));
-        builder.addMethod(createFilterFieldGetter(model, property));
-      }
     }
+
+    for (PropertyModel property : model.getFilterProperties()) {
+      builder.addField(Component.class, filterComponentName(property), PROTECTED);
+      builder.addMethod(createFilterFieldMethod(model, property));
+      builder.addMethod(createFilterFieldGetter(model, property));
+    }
+
     Map<TypeMirror, List<PropertyModel>> dependendDataBeans = model.getFilterProperties().stream()
         .filter(PropertyModel::isDataBean).collect(Collectors.groupingBy(PropertyModel::getType));
     for (TypeMirror type : dependendDataBeans.keySet()) {
@@ -120,25 +119,14 @@ public class VaadinGridGenerator extends AbstractCodeGenerator {
     return builder.build();
   }
 
-  private TypeName createFilterFieldType(DataBeanModel model, PropertyModel property) {
-    if (property.isDataBean()) {
-      return VaadinClassNameUtils.getComboboxClassName(property.getType());
-    } else {
-      return ClassName.get(TextField.class);
-    }
-  }
-
   private MethodSpec createFilterFieldMethod(DataBeanModel model, PropertyModel property) {
     MethodSpec.Builder builder = MethodSpec.methodBuilder(createFilterFieldMethodName(property))
         .returns(Component.class).addModifiers(PROTECTED);
-    builder.addStatement("return new $T()", createFilterFieldType(model, property));
+    getFieldCreator(property).createAndReturnFilterField(builder);
     return builder.build();
   }
 
   private MethodSpec createFilterFieldGetter(DataBeanModel model, PropertyModel property) {
-
-    // ((HasValue<ValueChangeEvent<Address>, Address>)
-
     TypeName hasValueType = hasValueType(property);
     MethodSpec.Builder builder = MethodSpec.methodBuilder(createFilterFieldGetterName(property))
         .returns(hasValueType).addModifiers(PUBLIC);
@@ -157,6 +145,7 @@ public class VaadinGridGenerator extends AbstractCodeGenerator {
   private MethodSpec constructor(DataBeanModel model) {
     Builder builder = MethodSpec.constructorBuilder().addModifiers(PUBLIC)
         .addStatement("this.grid = new $T<>()", ClassName.get(FilterGrid.class))
+        .addStatement("this.grid.setFilterBuilder(new " + model.getName() + "FilterBuilder())")
         .addStatement("this.filterRow = grid.appendHeaderRow()");
 
     for (PropertyModel property : model.getProperties()) {
@@ -208,8 +197,8 @@ public class VaadinGridGenerator extends AbstractCodeGenerator {
     return VaadinUtils.i18Wrapper(localeChangeMethodBuilder -> {
       for (PropertyModel propertyModel : model.getProperties()) {
         String fieldName = columnName(propertyModel);
-        localeChangeMethodBuilder.addStatement("$L.this.$L.setHeader(getTranslation($S))",
-            packageName(model) + "." + model.getName() + classSuffix(), fieldName,
+        localeChangeMethodBuilder.addStatement("$T.this.$L.setHeader(getTranslation($S))",
+            ClassName.get(packageName(model), model.getName() + classSuffix()), fieldName,
             TranslationUtil.captionKey(model, propertyModel));
       }
     });
@@ -217,9 +206,10 @@ public class VaadinGridGenerator extends AbstractCodeGenerator {
 
   private TypeSpec filterBuilder(DataBeanModel model, Set<PropertyModel> filterProperties) {
     TypeSpec.Builder builder =
-        TypeSpec.classBuilder("FilterBuilderImpl").addSuperinterface(ParameterizedTypeName
-            .get(ClassName.get(FilterBuilder.class), JPoetUtils.getFilterClassName(model)));
-    // (HasValue<? extends ValueChangeEvent<Address>, Address>)
+        TypeSpec.classBuilder(JPoetUtils.getFilterClassName(model).simpleName() + "Builder")
+            .addSuperinterface(ParameterizedTypeName.get(ClassName.get(FilterBuilder.class),
+                JPoetUtils.getFilterClassName(model)))
+            .addModifiers(PUBLIC);
     Builder methodBuilder = MethodSpec.methodBuilder("buildFilter").addAnnotation(Override.class)
         .addModifiers(PUBLIC).returns(JPoetUtils.getFilterClassName(model));
 

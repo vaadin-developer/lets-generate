@@ -25,7 +25,7 @@ public class JPoetUtils {
     return getFilterClassName(model.getPkg(), model.getName());
   }
 
-  private static ClassName getFilterClassName(String packageName, String simpleName) {
+  public static ClassName getFilterClassName(String packageName, String simpleName) {
     return ClassName.get(packageName + ".filter", simpleName + "Filter");
   }
 

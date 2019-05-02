@@ -15,14 +15,14 @@ public class IntegerFieldCreator implements FieldCreator {
   }
 
   @Override
-  public int getPriority() {
+  public int getPriority(FieldType fieldType) {
     return 0;
   }
 
   @Override
-  public void createAndReturnField(Builder builder) {
+  public void createAndReturnFormField(Builder builder) {
     String fieldName = "field";
-    builder.addStatement("$T $L = new $T()", getFieldType(), fieldName,
+    builder.addStatement("$T $L = new $T()", getFormFieldClassName(), fieldName,
         ClassName.get(TextField.class));
     builder.addStatement("$L.setPattern($S)", fieldName, "[0-9]*");
     builder.addStatement("$L.setPreventInvalidInput(true)", fieldName);
@@ -30,7 +30,7 @@ public class IntegerFieldCreator implements FieldCreator {
   }
 
   @Override
-  public ClassName getFieldType() {
+  public ClassName getFormFieldClassName() {
     return ClassName.get(TextField.class);
   }
 }

@@ -14,7 +14,7 @@ class TestFieldCreatorFactory {
   @Test
   @DisplayName("Default int creator")
   void test001() {
-    Optional<FieldCreator> creator = factoryUT.getFieldCreator(TypeName.INT);
+    Optional<FieldCreator> creator = factoryUT.getFieldCreator(TypeName.INT, FieldType.FORM);
     assertTrue(creator.isPresent());
     assertEquals(IntegerFieldCreator.class, creator.get().getClass());
   }
@@ -22,15 +22,17 @@ class TestFieldCreatorFactory {
   @Test
   @DisplayName("Default Integer creator")
   void test002() {
-    Optional<FieldCreator> creator = factoryUT.getFieldCreator(ClassName.get(Integer.class));
+    Optional<FieldCreator> creator =
+        factoryUT.getFieldCreator(ClassName.get(Integer.class), FieldType.FORM);
     assertTrue(creator.isPresent());
     assertEquals(IntegerFieldCreator.class, creator.get().getClass());
   }
-  
+
   @Test
   @DisplayName("Default String creator")
   void test003() {
-    Optional<FieldCreator> creator = factoryUT.getFieldCreator(ClassName.get(String.class));
+    Optional<FieldCreator> creator =
+        factoryUT.getFieldCreator(ClassName.get(String.class), FieldType.FORM);
     assertTrue(creator.isPresent());
     assertEquals(TextFieldCreator.class, creator.get().getClass());
   }

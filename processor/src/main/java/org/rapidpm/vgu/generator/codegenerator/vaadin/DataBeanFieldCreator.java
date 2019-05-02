@@ -20,19 +20,19 @@ public class DataBeanFieldCreator implements FieldCreator {
   }
 
   @Override
-  public int getPriority() {
+  public int getPriority(FieldType fieldType) {
     return 0;
   }
 
   @Override
-  public void createAndReturnField(Builder builder) {
+  public void createAndReturnFormField(Builder builder) {
     String fieldName = "field";
-    builder.addStatement("$T $L = new $T()", getFieldType(), fieldName, getFieldType());
+    builder.addStatement("$T $L = new $T()", getFormFieldClassName(), fieldName, getFormFieldClassName());
     builder.addStatement("return $L", fieldName);
   }
 
   @Override
-  public ClassName getFieldType() {
+  public ClassName getFormFieldClassName() {
     return VaadinClassNameUtils.getComboboxClassName(propertyModel);
   }
 

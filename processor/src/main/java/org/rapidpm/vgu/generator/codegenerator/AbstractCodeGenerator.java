@@ -14,8 +14,10 @@ import com.squareup.javapoet.TypeSpec;
 
 public abstract class AbstractCodeGenerator implements CodeGenerator, HasLogger {
   protected APLogger apLogger = null;
+  protected ProcessingEnvironment processingEnvironment;
 
   protected void setProccesingEnviroment(ProcessingEnvironment processingEnvironment) {
+    this.processingEnvironment = processingEnvironment;
     this.apLogger = new APLogger(processingEnvironment);
   }
 
