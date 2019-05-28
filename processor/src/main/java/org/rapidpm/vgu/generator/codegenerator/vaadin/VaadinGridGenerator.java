@@ -85,6 +85,7 @@ public class VaadinGridGenerator extends AbstractVaadinCodeGenerator {
         MethodSpec.methodBuilder("layoutCustomFilters").addModifiers(PROTECTED);
     builder.addStatement("this.customFilterLayout = new $T($L)",
         ClassName.get(VerticalLayout.class), "countLabel");
+     
     return builder.build();
   }
 
