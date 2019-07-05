@@ -28,7 +28,7 @@ public class FilterGenerator extends AbstractCodeGenerator {
                 .map(p -> generateFieldSpec(p, model.getModelType())).collect(Collectors.toSet()))
             .addMethods(model.getFilterProperties().stream().map(p -> generateGetter(p))
                 .collect(Collectors.toSet()))
-            .addMethods(model.getFilterProperties().stream().map(p -> generateSetter(p))
+            .addMethods(model.getFilterProperties().stream().map(p -> generateSetter(p, model))
                 .collect(Collectors.toSet()))
             .addMethod(generateToString(model)).addMethod(generateHashCode(model))
             .addMethod(generateEquals(model)).addAnnotation(Bean.class).build();
@@ -72,11 +72,12 @@ public class FilterGenerator extends AbstractCodeGenerator {
     return methodSpec;
   }
 
-  private MethodSpec generateSetter(PropertyModel p) {
-    MethodSpec methodSpec =
-        MethodSpec.methodBuilder(prefixCamelCase("set", p.getName())).addModifiers(Modifier.PUBLIC)
-            .returns(void.class).addParameter(TypeName.get(p.getType()).box(), p.getName())
-            .addStatement("this." + p.getName() + " = " + p.getName()).build();
+  private MethodSpec generateSetter(PropertyModel p, DataBeanModel model) {
+    MethodSpec methodSpec = MethodSpec.methodBuilder(prefixCamelCase("set", p.getName()))
+        .addModifiers(Modifier.PUBLIC).returns(JPoetUtils.getFilterClassName(model))
+        .addParameter(TypeName.get(p.getType()).box(), p.getName())
+        .addStatement("this." + p.getName() + " = " + p.getName())
+        .addStatement("return this").build();
     return methodSpec;
   }
 
