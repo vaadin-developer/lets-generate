@@ -20,6 +20,7 @@ public class Address extends BaseEntity {
   @SortProperty
   @FilterProperty
   private int age;
+  private boolean privateAddress;
   private String phone;
 
   public Address() {
@@ -37,6 +38,14 @@ public class Address extends BaseEntity {
   @Caption
   public String computeCaption() {
     return getId() + " - " + fristName + " " + lastName;
+  }
+
+  public boolean isPrivateAddress() {
+    return privateAddress;
+  }
+
+  public void setPrivateAddress(boolean privateAddress) {
+    this.privateAddress = privateAddress;
   }
 
   public String getFristName() {

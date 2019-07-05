@@ -7,6 +7,7 @@ import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import org.rapidpm.vgu.generator.annotation.DataBean;
 import org.rapidpm.vgu.generator.annotation.DisplayReadOnly;
+import org.rapidpm.vgu.generator.codegenerator.ClassNameUtils;
 import net.vergien.beanautoutils.annotation.Bean;
 
 @Bean
@@ -77,5 +78,15 @@ public class PropertyModel {
 
   public String getTranslation() {
     return name;
+  }
+
+  public String getGetter() {
+    String prefix;
+    if (type.getKind() == TypeKind.BOOLEAN) {
+      prefix = "is";
+    } else {
+      prefix = "get";
+    }
+    return ClassNameUtils.prefixCamelCase(prefix, name);
   }
 }

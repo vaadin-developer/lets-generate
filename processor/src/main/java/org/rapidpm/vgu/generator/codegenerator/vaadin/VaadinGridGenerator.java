@@ -142,7 +142,7 @@ public class VaadinGridGenerator extends AbstractVaadinCodeGenerator {
           ClassNameUtils.prefixCamelCase("get", property.getName()), property.getName());
     } else {
       builder.addStatement("return grid.addColumn($T::$L)", JPoetUtils.getBeanClassName(model),
-          ClassNameUtils.prefixCamelCase("get", property.getName()));
+          property.getGetter());
     }
     return builder.build();
   }
