@@ -13,4 +13,6 @@ public @interface CustomFilter {
   String name();
 
   boolean defaultFilter() default false;
+
+  boolean sort() default true;
 }

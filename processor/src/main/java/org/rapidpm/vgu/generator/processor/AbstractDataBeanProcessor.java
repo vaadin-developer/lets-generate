@@ -37,7 +37,61 @@ public abstract class AbstractDataBeanProcessor extends AbstractProcessor {
     dataBeanModel.setProperties(extractPropertyModel(typeElement, e -> true));
 
     dataBeanModel.setCaptionMethod(getCaptionMethod(typeElement));
+    handleSortProperties(typeElement, displayBeanPrisim, dataBeanModel);
+    handleFilterProperties(typeElement, displayBeanPrisim, dataBeanModel);
+
+    dataBeanModel.setPkg(getPackageName(typeElement));
+    dataBeanModel.setIdProperty(getIdProperty(typeElement));
+
+    if (typeElement.getKind() == ElementKind.ENUM) {
+      // beanDescription.setEnumeration(true);
+      // EnumScanner enumScanner = new EnumScanner();
+      // enumScanner.scan(displayBeanElement, beanDescription);
+      // beanDescription.setDisplayed(false);
+    } else {
+      BeanScanner importScanner = new BeanScanner();
+      importScanner.setProcessingEnvironment(processingEnv);
+      importScanner.scan(typeElement, dataBeanModel);
+      dataBeanModel.setImports(new ArrayList<>(importScanner.getImportedTypes()));
+    }
+    return dataBeanModel;
+  }
+
+  private void handleSortProperties(TypeElement typeElement, DataBeanPrism displayBeanPrisim,
+      DataBeanModel dataBeanModel) {
+    List<PropertyModel> defaultSortCandidates = new ArrayList<>();
+    dataBeanModel.getSortProperties()
+        .addAll(displayBeanPrisim.customFilters().stream().filter(cfPrism -> cfPrism.sort())
+            .map(cfPrism -> new PropertyModel(cfPrism.name(), cfPrism.type()))
+            .collect(Collectors.toSet()));
+
+    Set<PropertyModel> sortProperties = exctractPropertyModel(typeElement, SortProperty.class);
+
+    for (PropertyModel propertyModel1 : sortProperties) {
+      SortPropertyPrism ssp =
+          SortPropertyPrism.getInstanceOn(propertyModel1.getVariableElement().get());
+      if (Boolean.TRUE.equals(ssp.defaultSort())) {
+        defaultSortCandidates.add(propertyModel1);
+      }
+    }
+    dataBeanModel.getSortProperties().addAll(sortProperties);
+    switch (defaultSortCandidates.size()) {
+      case 0:
+        dataBeanModel.setDefaultSortProperty(Optional.empty());
+        break;
+      case 1:
+        dataBeanModel.setDefaultSortProperty(Optional.ofNullable(defaultSortCandidates.get(0)));
+        break;
+      default:
+        error("more than one default sort candidate found", typeElement, null);
+        break;
+    }
+  }
+
+  private void handleFilterProperties(TypeElement typeElement, DataBeanPrism displayBeanPrisim,
+      DataBeanModel dataBeanModel) {
     List<PropertyModel> defaultFilterCandidates = new ArrayList<>();
+
     dataBeanModel.getFilterProperties()
         .addAll(displayBeanPrisim.customFilters().stream().map(cfPrism -> {
           PropertyModel propertyModel = new PropertyModel(cfPrism.name(), cfPrism.type());
@@ -63,30 +117,9 @@ public abstract class AbstractDataBeanProcessor extends AbstractProcessor {
         dataBeanModel.setDefaultFilterProperty(Optional.ofNullable(defaultFilterCandidates.get(0)));
         break;
       default:
-        error("more than one default sort candidate found", typeElement, null);
+        error("more than one default filter candidate found", typeElement, null);
         break;
     }
-
-    dataBeanModel.getSortProperties()
-        .addAll(exctractPropertyModel(typeElement, SortProperty.class));
-    dataBeanModel.setPkg(getPackageName(typeElement));
-    dataBeanModel.setIdProperty(getIdProperty(typeElement));
-
-    setDefaultSort(typeElement, dataBeanModel);
-
-
-    if (typeElement.getKind() == ElementKind.ENUM) {
-      // beanDescription.setEnumeration(true);
-      // EnumScanner enumScanner = new EnumScanner();
-      // enumScanner.scan(displayBeanElement, beanDescription);
-      // beanDescription.setDisplayed(false);
-    } else {
-      BeanScanner importScanner = new BeanScanner();
-      importScanner.setProcessingEnvironment(processingEnv);
-      importScanner.scan(typeElement, dataBeanModel);
-      dataBeanModel.setImports(new ArrayList<>(importScanner.getImportedTypes()));
-    }
-    return dataBeanModel;
   }
 
   private Optional<ExecutableElement> getCaptionMethod(TypeElement typeElement) {
@@ -108,28 +141,6 @@ public abstract class AbstractDataBeanProcessor extends AbstractProcessor {
       return getCaptionMethod(superClassTypeElement);
     }
     return Optional.empty();
-  }
-
-  private void setDefaultSort(TypeElement typeElement, DataBeanModel dataBeanModel) {
-    List<PropertyModel> defaultSortCandidates = new ArrayList<>();
-    for (PropertyModel propertyModel : dataBeanModel.getSortProperties()) {
-      SortPropertyPrism ssp =
-          SortPropertyPrism.getInstanceOn(propertyModel.getVariableElement().get());
-      if (Boolean.TRUE.equals(ssp.defaultSort())) {
-        defaultSortCandidates.add(propertyModel);
-      }
-    }
-    switch (defaultSortCandidates.size()) {
-      case 0:
-        dataBeanModel.setDefaultSortProperty(Optional.empty());
-        break;
-      case 1:
-        dataBeanModel.setDefaultSortProperty(Optional.ofNullable(defaultSortCandidates.get(0)));
-        break;
-      default:
-        error("more than one default sort candidate found", typeElement, null);
-        break;
-    }
   }
 
   private void setDefaultFilter(TypeElement typeElement, DataBeanModel dataBeanModel) {
