@@ -63,6 +63,7 @@ public class VaadinGridGenerator extends AbstractVaadinCodeGenerator {
     for (PropertyModel property : model.getProperties()) {
       builder.addField(columnType(model), columnName(property), PRIVATE);
       builder.addMethod(createColumnMethod(model, property));
+      builder.addMethod(initColumnMethod(model, property));
     }
 
     for (PropertyModel property : model.getFilterProperties()) {
@@ -134,15 +135,22 @@ public class VaadinGridGenerator extends AbstractVaadinCodeGenerator {
 
     MethodSpec.Builder builder = MethodSpec.methodBuilder(createColumnMethodName(property))
         .returns(columnType(model)).addModifiers(PROTECTED);
+    builder.addStatement("$T column = grid.addColumn($T::$L)",
+        ParameterizedTypeName.get(ClassName.get(Column.class), JPoetUtils.getBeanClassName(model)),
+        JPoetUtils.getBeanClassName(model), property.getGetter());
+    builder.addStatement("return column");
+    return builder.build();
+  }
 
+  private MethodSpec initColumnMethod(DataBeanModel model, PropertyModel property) {
+    MethodSpec.Builder builder =
+        MethodSpec.methodBuilder(createInitColumnMethodName(property)).addModifiers(PROTECTED);
     boolean isSortable = model.getSortProperties().contains(property);
+
+    builder.addStatement("this.$L.setResizable(true)", columnName(property));
     if (isSortable) {
-      builder.addStatement("return grid.addColumn($T::$L).setResizable(true).setSortable(true).setSortProperty($S)",
-          JPoetUtils.getBeanClassName(model),
-          ClassNameUtils.prefixCamelCase("get", property.getName()), property.getName());
-    } else {
-      builder.addStatement("return grid.addColumn($T::$L).setResizable(true)", JPoetUtils.getBeanClassName(model),
-          property.getGetter());
+      builder.addStatement("this.$L.setSortable(true).setSortProperty($S)", columnName(property),
+          property.getName());
     }
     return builder.build();
   }
@@ -182,6 +190,7 @@ public class VaadinGridGenerator extends AbstractVaadinCodeGenerator {
     for (PropertyModel property : model.getProperties()) {
       builder.addStatement("this.$L = $L()", columnName(property),
           createColumnMethodName(property));
+      builder.addStatement(createInitColumnMethodName(property) + "()");
       if (model.getFilterProperties().contains(property)) {
         builder.addStatement("this.grid.addFilter($L, $L)", columnName(property),
             filterComponentName(property));
@@ -192,6 +201,10 @@ public class VaadinGridGenerator extends AbstractVaadinCodeGenerator {
     builder.addStatement("this.wrapper = new I18NWrapper(new $T(customFilterLayout, grid))",
         ClassName.get(VerticalLayout.class));
     return builder.build();
+  }
+
+  private String createInitColumnMethodName(PropertyModel property) {
+    return ClassNameUtils.prefixCamelCase("init", property.getName()) + "Column";
   }
 
   private String createColumnMethodName(PropertyModel property) {
