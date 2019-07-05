@@ -137,11 +137,11 @@ public class VaadinGridGenerator extends AbstractVaadinCodeGenerator {
 
     boolean isSortable = model.getSortProperties().contains(property);
     if (isSortable) {
-      builder.addStatement("return grid.addColumn($T::$L).setSortable(true).setSortProperty($S)",
+      builder.addStatement("return grid.addColumn($T::$L).setResizable(true).setSortable(true).setSortProperty($S)",
           JPoetUtils.getBeanClassName(model),
           ClassNameUtils.prefixCamelCase("get", property.getName()), property.getName());
     } else {
-      builder.addStatement("return grid.addColumn($T::$L)", JPoetUtils.getBeanClassName(model),
+      builder.addStatement("return grid.addColumn($T::$L).setResizable(true)", JPoetUtils.getBeanClassName(model),
           property.getGetter());
     }
     return builder.build();
@@ -173,7 +173,7 @@ public class VaadinGridGenerator extends AbstractVaadinCodeGenerator {
   private MethodSpec constructor(DataBeanModel model) {
     Builder builder = MethodSpec.constructorBuilder().addModifiers(PUBLIC)
         .addStatement("this.grid = new $T<>()", ClassName.get(FilterGrid.class))
-
+        .addStatement("this.grid.setColumnReorderingAllowed(true)")
         .addStatement("this.filterRow = grid.appendHeaderRow()");
     for (PropertyModel filterProperty : model.getFilterProperties()) {
       builder.addStatement("this.$L = $L()", filterComponentName(filterProperty),
