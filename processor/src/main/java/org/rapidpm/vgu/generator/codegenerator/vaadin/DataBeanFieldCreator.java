@@ -27,8 +27,14 @@ public class DataBeanFieldCreator implements FieldCreator {
   @Override
   public void createAndReturnFormField(Builder builder) {
     String fieldName = "field";
-    builder.addStatement("$T $L = new $T()", getFormFieldClassName(), fieldName, getFormFieldClassName());
+    builder.addStatement("$T $L = new $T()", getFormFieldClassName(), fieldName,
+        getFormFieldClassName());
     builder.addStatement("return $L", fieldName);
+  }
+
+  @Override
+  public TypeName getFieldType() {
+    return JPoetUtils.getPropertyClassName(propertyModel);
   }
 
   @Override

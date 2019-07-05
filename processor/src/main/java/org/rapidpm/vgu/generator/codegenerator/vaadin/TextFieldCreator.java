@@ -20,6 +20,11 @@ public class TextFieldCreator implements FieldCreator {
   }
 
   @Override
+  public TypeName getFieldType() {
+    return ClassName.get(String.class);
+  }
+
+  @Override
   public void createAndReturnFormField(Builder builder) {
     String fieldName = "field";
     builder.addStatement("$T $L = new $T()", getFormFieldClassName(), fieldName,

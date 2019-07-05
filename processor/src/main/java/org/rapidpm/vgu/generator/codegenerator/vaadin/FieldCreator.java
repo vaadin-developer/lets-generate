@@ -13,11 +13,17 @@ public interface FieldCreator {
 
   public ClassName getFormFieldClassName();
 
+  public TypeName getFieldType();
+
   public default void createAndReturnFilterField(MethodSpec.Builder builder) {
     createAndReturnFormField(builder);
-  };
+  }
 
   public default ClassName getFilterFieldClassName() {
     return getFormFieldClassName();
+  }
+
+  public default ClassName converter() {
+    return null;
   }
 }

@@ -249,11 +249,22 @@ public class VaadinGridGenerator extends AbstractVaadinCodeGenerator {
         .build());
     Builder constructorBuilder = MethodSpec.constructorBuilder().addModifiers(PUBLIC);
     for (PropertyModel filterProperty : filterProperties) {
-      constructorBuilder.addStatement("this.binder.forField((($T) $L)).bind($S)",
-          ParameterizedTypeName.get(ClassName.get(HasValue.class),
-              WildcardTypeName.subtypeOf(ClassName.get(ValueChangeEvent.class)),
-              JPoetUtils.getPropertyClassName(filterProperty).box()),
-          filterComponentName(filterProperty), filterProperty.getName());
+      FieldCreator fieldCreator = getFieldCreator(filterProperty);
+      if (fieldCreator.converter() == null) {
+        constructorBuilder.addStatement("this.binder.forField((($T) $L)).bind($S)",
+            ParameterizedTypeName.get(ClassName.get(HasValue.class),
+                WildcardTypeName.subtypeOf(ClassName.get(ValueChangeEvent.class)),
+                fieldCreator.getFieldType()),
+            filterComponentName(filterProperty), filterProperty.getName());
+      } else {
+        constructorBuilder.addStatement(
+            "this.binder.forField((($T) $L)).withConverter(new $T($S)).bind($S)",
+            ParameterizedTypeName.get(ClassName.get(HasValue.class),
+                WildcardTypeName.subtypeOf(ClassName.get(ValueChangeEvent.class)),
+                fieldCreator.getFieldType()),
+            filterComponentName(filterProperty), fieldCreator.converter(), "Failure",
+            filterProperty.getName());
+      }
     }
     builder.addMethod(constructorBuilder.build());
     Builder methodBuilder = MethodSpec.methodBuilder("buildFilter").addAnnotation(Override.class)
