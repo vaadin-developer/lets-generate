@@ -28,7 +28,7 @@ public class TextFieldCreator implements FieldCreator {
   public void createAndReturnFormField(Builder builder) {
     String fieldName = "field";
     builder.addStatement("$T $L = new $T()", getFormFieldClassName(), fieldName,
-        ClassName.get(TextField.class));
+        getFormFieldClassName());
     builder.addStatement("return $L", fieldName);
   }
 

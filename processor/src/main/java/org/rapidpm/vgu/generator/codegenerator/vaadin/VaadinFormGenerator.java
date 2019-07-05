@@ -140,10 +140,11 @@ public class VaadinFormGenerator extends AbstractVaadinCodeGenerator {
   }
 
   private MethodSpec initField(PropertyModel propertyModel) {
+    FieldCreator creator = getFieldCreator(propertyModel);
     String fieldName = fieldName(propertyModel);
     com.squareup.javapoet.MethodSpec.Builder initFieldMethod =
         MethodSpec.methodBuilder(fieldInitMethodName(propertyModel)).addModifiers(PROTECTED);
-    if (TypeName.get(propertyModel.getType()).isPrimitive()) {
+    if (creator.allowsRequiered() && TypeName.get(propertyModel.getType()).isPrimitive()) {
       initFieldMethod.addStatement("this.$L.setRequired(true)", fieldName);
     }
 
@@ -265,7 +266,7 @@ public class VaadinFormGenerator extends AbstractVaadinCodeGenerator {
     return "Form";
   }
 
-  private ClassName fieldType(PropertyModel propertyModel) {
+  private TypeName fieldType(PropertyModel propertyModel) {
     FieldCreator fieldCreator = getFieldCreator(propertyModel);
     return fieldCreator.getFormFieldClassName();
   }

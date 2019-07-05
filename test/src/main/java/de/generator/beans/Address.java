@@ -20,6 +20,7 @@ public class Address extends BaseEntity {
   @SortProperty
   @FilterProperty
   private int age;
+  @FilterProperty
   private boolean privateAddress;
   private String phone;
 

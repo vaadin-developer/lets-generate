@@ -11,7 +11,7 @@ public interface FieldCreator {
 
   public void createAndReturnFormField(MethodSpec.Builder builder);
 
-  public ClassName getFormFieldClassName();
+  public TypeName getFormFieldClassName();
 
   public TypeName getFieldType();
 
@@ -19,11 +19,15 @@ public interface FieldCreator {
     createAndReturnFormField(builder);
   }
 
-  public default ClassName getFilterFieldClassName() {
+  public default TypeName getFilterFieldClassName() {
     return getFormFieldClassName();
   }
 
   public default ClassName converter() {
     return null;
+  }
+
+  public default boolean allowsRequiered() {
+    return true;
   }
 }
