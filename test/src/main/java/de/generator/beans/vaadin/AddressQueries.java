@@ -21,7 +21,15 @@ public class AddressQueries implements AddressBaseQueries, HasLogger {
 
   static {
     List<Address> c = new ArrayList<>();
-    c.add(new Address(1, "Hans", "Wurst", 20, "1234"));
+    int id = 0;
+    for (String firstName : new String[] {"Hans", "Daniel", "Heinz", "Jim", "Mandy", "Maike",
+        "Laura"}) {
+      for (String lastName : new String[] {"Maier", "Schulz", "Mueller", "Schmidt"}) {
+        id++;
+        c.add(new Address(id, firstName, lastName, 20 + (id % 10) * 2, "1234"));
+      }
+    }
+
     ADDRESSES = Collections.unmodifiableList(c);
   }
 
@@ -40,6 +48,14 @@ public class AddressQueries implements AddressBaseQueries, HasLogger {
             ? StringUtils.compare(c1.getFristName(), c2.getFristName())
             : StringUtils.compare(c2.getFristName(), c1.getFristName()));
         break;
+      case LAST_NAME:
+        stream = stream.sorted((c1, c2) -> sortOrder == SortOrder.ASC
+            ? StringUtils.compare(c1.getLastName(), c2.getLastName())
+            : StringUtils.compare(c2.getLastName(), c1.getLastName()));
+        break;
+      case AGE:
+        stream = stream.sorted((a1, a2) -> sortOrder == SortOrder.ASC ? a1.getAge() - a2.getAge()
+            : a2.getAge() - a1.getAge());
       default:
         break;
     }
@@ -49,10 +65,27 @@ public class AddressQueries implements AddressBaseQueries, HasLogger {
   }
 
   private Stream<Address> filter(Stream<Address> stream, AddressFilter filter) {
+    if (StringUtils.isNotBlank(filter.getFristName())) {
+      stream = stream.filter(contract -> StringUtils.containsIgnoreCase(contract.getFristName(),
+          filter.getFristName()));
+    }
+    if (StringUtils.isNotBlank(filter.getLastName())) {
+      stream = stream.filter(
+          contract -> StringUtils.containsIgnoreCase(contract.getLastName(), filter.getLastName()));
+    }
+    if (filter.getAge() != null) {
+      stream = stream.filter(contract -> contract.getAge() == filter.getAge());
+    }
+    if (filter.getMaxAge() != null) {
+      stream = stream.filter(contract -> contract.getAge() <= filter.getMaxAge());
+    }
     if (StringUtils.isNotBlank(filter.getName())) {
       stream = stream.filter(
           contract -> StringUtils.containsIgnoreCase(contract.getFristName(), filter.getName())
               || StringUtils.containsIgnoreCase(contract.getLastName(), filter.getName()));
+    }
+    if (filter.getPrivateAddress() != null) {
+      stream = stream.filter(contract -> contract.isPrivateAddress() == filter.getPrivateAddress());
     }
     return stream;
   }

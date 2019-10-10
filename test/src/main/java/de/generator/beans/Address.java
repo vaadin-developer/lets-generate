@@ -16,6 +16,7 @@ public class Address extends BaseEntity {
   @FilterProperty
   private String fristName;
   @FilterProperty
+  @SortProperty
   private String lastName;
   @SortProperty
   @FilterProperty
