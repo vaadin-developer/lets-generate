@@ -27,6 +27,7 @@ public class IntegerFieldCreator implements FieldCreator {
         ClassName.get(TextField.class));
     builder.addStatement("$L.setPattern($S)", fieldName, "[0-9]*");
     builder.addStatement("$L.setPreventInvalidInput(true)", fieldName);
+    builder.addStatement("$L.setClearButtonVisible(true)", fieldName);
     builder.addStatement("return $L", fieldName);
   }
 

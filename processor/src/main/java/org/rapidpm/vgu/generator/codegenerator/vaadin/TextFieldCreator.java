@@ -29,6 +29,7 @@ public class TextFieldCreator implements FieldCreator {
     String fieldName = "field";
     builder.addStatement("$T $L = new $T()", getFormFieldClassName(), fieldName,
         getFormFieldClassName());
+    builder.addStatement("$L.setClearButtonVisible(true)", fieldName);
     builder.addStatement("return $L", fieldName);
   }
 

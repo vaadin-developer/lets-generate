@@ -29,6 +29,7 @@ public class DataBeanFieldCreator implements FieldCreator {
     String fieldName = "field";
     builder.addStatement("$T $L = new $T()", getFormFieldClassName(), fieldName,
         getFormFieldClassName());
+    builder.addStatement("$L.setClearButtonVisible(true)", fieldName);
     builder.addStatement("return $L", fieldName);
   }
 
@@ -42,4 +43,8 @@ public class DataBeanFieldCreator implements FieldCreator {
     return VaadinClassNameUtils.getComboboxClassName(propertyModel);
   }
 
+  @Override
+  public boolean allowsEmpty() {
+    return true;
+  }
 }

@@ -8,6 +8,7 @@ import javax.lang.model.type.TypeMirror;
 import org.rapidpm.vgu.generator.annotation.DataBean;
 import org.rapidpm.vgu.generator.annotation.DisplayReadOnly;
 import org.rapidpm.vgu.generator.codegenerator.ClassNameUtils;
+import com.squareup.javapoet.TypeName;
 import net.vergien.beanautoutils.annotation.Bean;
 
 @Bean
@@ -88,5 +89,9 @@ public class PropertyModel {
       prefix = "get";
     }
     return ClassNameUtils.prefixCamelCase(prefix, name);
+  }
+
+  public boolean isEmptyAllowed() {
+    return !TypeName.get(this.getType()).isPrimitive();
   }
 }

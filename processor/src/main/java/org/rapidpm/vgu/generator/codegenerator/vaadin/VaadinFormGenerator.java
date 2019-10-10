@@ -147,7 +147,12 @@ public class VaadinFormGenerator extends AbstractVaadinCodeGenerator {
     if (creator.allowsRequiered() && TypeName.get(propertyModel.getType()).isPrimitive()) {
       initFieldMethod.addStatement("this.$L.setRequired(true)", fieldName);
     }
-
+    if (propertyModel.isDisplayReadOnly()) {
+      initFieldMethod.addStatement("this.$L.setReadOnly(true)", fieldName);
+    }
+    if (propertyModel.isEmptyAllowed() && creator.allowsEmpty()) {
+      initFieldMethod.addStatement("this.$L.setClearButtonVisible(true)", fieldName);
+    }
     return initFieldMethod.build();
   }
 

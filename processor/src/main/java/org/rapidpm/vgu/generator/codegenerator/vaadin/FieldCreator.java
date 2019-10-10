@@ -30,4 +30,8 @@ public interface FieldCreator {
   public default boolean allowsRequiered() {
     return true;
   }
+
+  public default boolean allowsEmpty() {
+    return false;
+  }
 }
