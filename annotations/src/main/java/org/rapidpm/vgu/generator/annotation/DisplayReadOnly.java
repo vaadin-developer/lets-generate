@@ -7,5 +7,8 @@ import java.lang.annotation.Target;
 
 @Retention(CLASS)
 @Target(FIELD)
+/**
+ * Indicates that a property is not editable in the ui
+ */
 public @interface DisplayReadOnly {
 }
