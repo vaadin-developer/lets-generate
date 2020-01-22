@@ -38,7 +38,7 @@
 		<dependency>
 			<groupId>org.infinitenature</groupId>
 			<artifactId>commons-pagination</artifactId>
-			<version>0.0.6</version>
+			<version>0.0.7</version>
 		</dependency>
 		<dependency>
 			<groupId>net.vergien.lets-generate</groupId>
